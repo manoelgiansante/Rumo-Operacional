@@ -1,8 +1,21 @@
-import { Operation, Expense, ExpenseCategory, SubscriptionPlan } from '@/types';
+import { Operation, Expense, ExpenseCategory, SubscriptionPlan, Sector } from '@/types';
+
+export const defaultSectors: Sector[] = [
+  {
+    id: '1',
+    name: 'Pecuária',
+    description: 'Setor de criação e manejo de gado',
+    color: '#8B4513',
+    icon: 'Beef',
+    isActive: true,
+    createdAt: '2024-01-01',
+  },
+];
 
 export const defaultOperations: Operation[] = [
   {
     id: '1',
+    sectorId: '1',
     name: 'Confinamento',
     description: 'Operação de confinamento de gado',
     color: '#8B4513',

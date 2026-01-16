@@ -19,6 +19,12 @@ export default function RootLayout() {
           }} 
         />
         <Stack.Screen 
+          name="add-sector" 
+          options={{ 
+            presentation: 'modal',
+          }} 
+        />
+        <Stack.Screen 
           name="expense-detail" 
           options={{ 
             presentation: 'card',

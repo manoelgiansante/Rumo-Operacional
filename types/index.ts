@@ -1,5 +1,16 @@
+export interface Sector {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  icon: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface Operation {
   id: string;
+  sectorId: string;
   name: string;
   description: string;
   color: string;

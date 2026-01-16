@@ -15,9 +15,10 @@ import {
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 
+
 export default function DashboardScreen() {
   const router = useRouter();
-  const { operations, expenses, getMonthlyTotal, currentPlanId, currentPlan } = useApp();
+  const { operations, expenses, getMonthlyTotal, currentPlanId, currentPlan, sectors, getOperationsBySector } = useApp();
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(() => {
@@ -140,36 +141,62 @@ export default function DashboardScreen() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionTitle}>Operações</Text>
-              {currentPlanId === 'free' && (
-                <View style={styles.limitBadge}>
-                  <Text style={styles.limitBadgeText}>{operations.length}/{currentPlan.operationsLimit}</Text>
-                </View>
-              )}
-            </View>
-            <TouchableOpacity onPress={() => router.push('/add-operation')}>
-              <Text style={styles.sectionLink}>+ Nova</Text>
+            <Text style={styles.sectionTitle}>Setores</Text>
+            <TouchableOpacity onPress={() => router.push('/add-sector')}>
+              <Text style={styles.sectionLink}>+ Novo Setor</Text>
             </TouchableOpacity>
           </View>
 
-          {operations.filter(op => op.isActive).map((operation) => (
+          {sectors.filter(s => s.isActive).map((sector) => {
+            const sectorOperations = getOperationsBySector(sector.id);
+            const sectorTotal = sectorOperations.reduce((sum, op) => sum + getOperationTotal(op.id), 0);
+            
+            return (
+              <View key={sector.id} style={styles.sectorCard}>
+                <View style={styles.sectorHeader}>
+                  <View style={[styles.sectorIndicator, { backgroundColor: sector.color }]} />
+                  <View style={styles.sectorInfo}>
+                    <Text style={styles.sectorName}>{sector.name}</Text>
+                    <Text style={styles.sectorDescription}>{sector.description}</Text>
+                  </View>
+                  <Text style={styles.sectorTotal}>{formatCurrency(sectorTotal)}</Text>
+                </View>
+                
+                {sectorOperations.filter(op => op.isActive).map((operation) => (
+                  <TouchableOpacity 
+                    key={operation.id}
+                    style={styles.operationCard}
+                    onPress={() => router.push(`/(tabs)/expenses?operation=${operation.id}`)}
+                  >
+                    <View style={[styles.operationIndicator, { backgroundColor: operation.color }]} />
+                    <View style={styles.operationInfo}>
+                      <Text style={styles.operationName}>{operation.name}</Text>
+                      <Text style={styles.operationDescription}>{operation.description}</Text>
+                    </View>
+                    <View style={styles.operationValue}>
+                      <Text style={styles.operationTotal}>{formatCurrency(getOperationTotal(operation.id))}</Text>
+                      <ChevronRight size={16} color={colors.textMuted} strokeWidth={1.5} />
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            );
+          })}
+
+          <View style={styles.addOperationRow}>
             <TouchableOpacity 
-              key={operation.id}
-              style={styles.operationCard}
-              onPress={() => router.push(`/(tabs)/expenses?operation=${operation.id}`)}
+              style={styles.addOperationButton}
+              onPress={() => router.push('/add-operation')}
             >
-              <View style={[styles.operationIndicator, { backgroundColor: operation.color }]} />
-              <View style={styles.operationInfo}>
-                <Text style={styles.operationName}>{operation.name}</Text>
-                <Text style={styles.operationDescription}>{operation.description}</Text>
-              </View>
-              <View style={styles.operationValue}>
-                <Text style={styles.operationTotal}>{formatCurrency(getOperationTotal(operation.id))}</Text>
-                <ChevronRight size={16} color={colors.textMuted} strokeWidth={1.5} />
-              </View>
+              <Plus size={16} color={colors.primary} strokeWidth={1.5} />
+              <Text style={styles.addOperationText}>Adicionar Operação</Text>
             </TouchableOpacity>
-          ))}
+            {currentPlanId === 'free' && (
+              <View style={styles.limitBadge}>
+                <Text style={styles.limitBadgeText}>{operations.length}/{currentPlan.operationsLimit}</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -509,5 +536,61 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 30,
+  },
+  sectorCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden' as const,
+  },
+  sectorHeader: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    padding: 16,
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  sectorIndicator: {
+    width: 6,
+    height: 40,
+    borderRadius: 3,
+  },
+  sectorInfo: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  sectorName: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: colors.text,
+    marginBottom: 2,
+  },
+  sectorDescription: {
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  sectorTotal: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: colors.text,
+  },
+  addOperationRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    marginTop: 8,
+  },
+  addOperationButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 6,
+  },
+  addOperationText: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+    color: colors.primary,
   },
 });

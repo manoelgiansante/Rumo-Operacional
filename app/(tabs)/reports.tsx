@@ -6,9 +6,10 @@ import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Lock, Crown } from
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 
+
 export default function ReportsScreen() {
   const router = useRouter();
-  const { expenses, operations, isPremiumFeature } = useApp();
+  const { expenses, operations, sectors, getOperationsBySector, isPremiumFeature } = useApp();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
   const monthlyData = useMemo(() => {
@@ -34,18 +35,36 @@ export default function ReportsScreen() {
       };
     }).filter(item => item.total > 0);
 
+    const sectorTotals = sectors.map(sector => {
+      const sectorOps = getOperationsBySector(sector.id);
+      const sectorExpenses = monthExpenses.filter(exp => 
+        sectorOps.some(op => op.id === exp.operationId)
+      );
+      const total = sectorExpenses.reduce((sum, exp) => sum + exp.agreedValue, 0);
+      const paid = sectorExpenses.filter(e => e.status === 'paid').reduce((sum, e) => sum + e.agreedValue, 0);
+      const pending = total - paid;
+      return {
+        sector,
+        total,
+        paid,
+        pending,
+        count: sectorExpenses.length,
+      };
+    }).filter(item => item.total > 0);
+
     const totalMonth = monthExpenses.reduce((sum, exp) => sum + exp.agreedValue, 0);
     const totalPaid = monthExpenses.filter(e => e.status === 'paid').reduce((sum, e) => sum + e.agreedValue, 0);
     const totalPending = totalMonth - totalPaid;
 
     return {
       operationTotals,
+      sectorTotals,
       totalMonth,
       totalPaid,
       totalPending,
       expenseCount: monthExpenses.length,
     };
-  }, [expenses, operations, selectedMonth]);
+  }, [expenses, operations, sectors, getOperationsBySector, selectedMonth]);
 
   const prevMonthData = useMemo(() => {
     const prevMonth = new Date(selectedMonth);
@@ -76,6 +95,7 @@ export default function ReportsScreen() {
   };
 
   const maxTotal = Math.max(...monthlyData.operationTotals.map(item => item.total), 1);
+  const maxSectorTotal = Math.max(...monthlyData.sectorTotals.map(item => item.total), 1);
 
   if (isPremiumFeature('reports')) {
     return (
@@ -198,6 +218,47 @@ export default function ReportsScreen() {
               <Text style={styles.gridValue}>{monthlyData.expenseCount}</Text>
             </View>
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Por Setor</Text>
+
+          {monthlyData.sectorTotals.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>Nenhum lançamento neste mês</Text>
+            </View>
+          ) : (
+            monthlyData.sectorTotals.map((item) => (
+              <View key={item.sector.id} style={styles.operationCard}>
+                <View style={styles.operationHeader}>
+                  <View style={[styles.operationDot, { backgroundColor: item.sector.color }]} />
+                  <Text style={styles.operationName}>{item.sector.name}</Text>
+                  <Text style={styles.operationTotal}>{formatCurrency(item.total)}</Text>
+                </View>
+                
+                <View style={styles.barContainer}>
+                  <View 
+                    style={[
+                      styles.barFill,
+                      { 
+                        width: `${(item.total / maxSectorTotal) * 100}%`,
+                        backgroundColor: item.sector.color,
+                      }
+                    ]} 
+                  />
+                </View>
+
+                <View style={styles.operationDetails}>
+                  <Text style={styles.detailText}>
+                    <Text style={{ color: colors.success }}>{formatCurrency(item.paid)}</Text> pago
+                  </Text>
+                  <Text style={styles.detailText}>
+                    <Text style={{ color: colors.warning }}>{formatCurrency(item.pending)}</Text> pendente
+                  </Text>
+                </View>
+              </View>
+            ))
+          )}
         </View>
 
         <View style={styles.section}>

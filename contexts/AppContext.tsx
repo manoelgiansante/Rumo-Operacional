@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
-import { Operation, Expense } from '@/types';
-import { defaultOperations, mockExpenses, subscriptionPlans } from '@/mocks/data';
+import { Operation, Expense, Sector } from '@/types';
+import { defaultOperations, mockExpenses, subscriptionPlans, defaultSectors } from '@/mocks/data';
 
 const STORAGE_KEYS = {
+  SECTORS: '@agrofinance_sectors',
   OPERATIONS: '@agrofinance_operations',
   EXPENSES: '@agrofinance_expenses',
   SUBSCRIPTION: '@agrofinance_subscription',
 };
 
 export const [AppProvider, useApp] = createContextHook(() => {
+  const [sectors, setSectors] = useState<Sector[]>(defaultSectors);
   const [operations, setOperations] = useState<Operation[]>(defaultOperations);
   const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,12 +52,16 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
   const loadData = async () => {
     try {
-      const [storedOperations, storedExpenses, storedSubscription] = await Promise.all([
+      const [storedSectors, storedOperations, storedExpenses, storedSubscription] = await Promise.all([
+        AsyncStorage.getItem(STORAGE_KEYS.SECTORS),
         AsyncStorage.getItem(STORAGE_KEYS.OPERATIONS),
         AsyncStorage.getItem(STORAGE_KEYS.EXPENSES),
         AsyncStorage.getItem(STORAGE_KEYS.SUBSCRIPTION),
       ]);
 
+      if (storedSectors) {
+        setSectors(JSON.parse(storedSectors));
+      }
       if (storedOperations) {
         setOperations(JSON.parse(storedOperations));
       }
@@ -71,6 +77,44 @@ export const [AppProvider, useApp] = createContextHook(() => {
       setIsLoading(false);
     }
   };
+
+  const saveSectors = async (newSectors: Sector[]) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.SECTORS, JSON.stringify(newSectors));
+      setSectors(newSectors);
+    } catch (error) {
+      console.log('Error saving sectors:', error);
+    }
+  };
+
+  const addSector = useCallback((sector: Omit<Sector, 'id' | 'createdAt'>) => {
+    const newSector: Sector = {
+      ...sector,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [...sectors, newSector];
+    saveSectors(updated);
+    return newSector;
+  }, [sectors]);
+
+  const updateSector = useCallback((id: string, updates: Partial<Sector>) => {
+    const updated = sectors.map(s => s.id === id ? { ...s, ...updates } : s);
+    saveSectors(updated);
+  }, [sectors]);
+
+  const deleteSector = useCallback((id: string) => {
+    const updated = sectors.filter(s => s.id !== id);
+    saveSectors(updated);
+  }, [sectors]);
+
+  const getSectorById = useCallback((id: string) => {
+    return sectors.find(s => s.id === id);
+  }, [sectors]);
+
+  const getOperationsBySector = useCallback((sectorId: string) => {
+    return operations.filter(op => op.sectorId === sectorId);
+  }, [operations]);
 
   const saveOperations = async (newOperations: Operation[]) => {
     try {
@@ -172,9 +216,15 @@ export const [AppProvider, useApp] = createContextHook(() => {
   }, [expenses]);
 
   return {
+    sectors,
     operations,
     expenses,
     isLoading,
+    addSector,
+    updateSector,
+    deleteSector,
+    getSectorById,
+    getOperationsBySector,
     addOperation,
     updateOperation,
     deleteOperation,

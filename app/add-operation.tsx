@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { X, Check, Lock, Crown } from 'lucide-react-native';
+import { X, Check, Lock, Crown, ChevronDown } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 
@@ -18,6 +18,10 @@ export default function AddOperationScreen() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(OPERATION_COLORS[0]);
+  const [selectedSectorId, setSelectedSectorId] = useState<string>('');
+  const [showSectorPicker, setShowSectorPicker] = useState(false);
+  
+  const { sectors } = useApp();
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -25,7 +29,13 @@ export default function AddOperationScreen() {
       return;
     }
 
+    if (!selectedSectorId) {
+      Alert.alert('Erro', 'Selecione um setor');
+      return;
+    }
+
     addOperation({
+      sectorId: selectedSectorId,
       name: name.trim(),
       description: description.trim() || 'Sem descrição',
       color: selectedColor,
@@ -89,6 +99,46 @@ export default function AddOperationScreen() {
           </View>
           <Text style={styles.previewName}>{name || 'Nome da Operação'}</Text>
           <Text style={styles.previewDescription}>{description || 'Descrição'}</Text>
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Setor *</Text>
+          <TouchableOpacity 
+            style={styles.selectInput}
+            onPress={() => setShowSectorPicker(!showSectorPicker)}
+          >
+            <Text style={selectedSectorId ? styles.selectText : styles.selectPlaceholder}>
+              {selectedSectorId 
+                ? sectors.find(s => s.id === selectedSectorId)?.name 
+                : 'Selecione um setor'}
+            </Text>
+            <ChevronDown size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+          {showSectorPicker && (
+            <View style={styles.pickerDropdown}>
+              {sectors.map((sector) => (
+                <TouchableOpacity
+                  key={sector.id}
+                  style={[
+                    styles.pickerItem,
+                    selectedSectorId === sector.id && styles.pickerItemSelected
+                  ]}
+                  onPress={() => {
+                    setSelectedSectorId(sector.id);
+                    setShowSectorPicker(false);
+                  }}
+                >
+                  <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
+                  <Text style={[
+                    styles.pickerItemText,
+                    selectedSectorId === sector.id && styles.pickerItemTextSelected
+                  ]}>
+                    {sector.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.field}>
@@ -298,6 +348,56 @@ const styles = StyleSheet.create({
   colorItemSelected: {
     borderWidth: 3,
     borderColor: colors.text,
+  },
+  selectInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  selectText: {
+    fontSize: 15,
+    color: colors.text,
+  },
+  selectPlaceholder: {
+    fontSize: 15,
+    color: colors.textMuted,
+  },
+  pickerDropdown: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden' as const,
+  },
+  pickerItem: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  pickerItemSelected: {
+    backgroundColor: colors.primary + '10',
+  },
+  pickerItemText: {
+    fontSize: 15,
+    color: colors.text,
+  },
+  pickerItemTextSelected: {
+    fontWeight: '600' as const,
+    color: colors.primary,
+  },
+  sectorDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 12,
   },
   bottomSpacing: {
     height: 40,
