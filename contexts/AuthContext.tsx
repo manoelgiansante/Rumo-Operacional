@@ -11,21 +11,44 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   useEffect(() => {
     console.log('[Auth] Initializing auth state...');
     
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[Auth] Initial session:', session ? 'exists' : 'null');
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    const initAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.log('[Auth] Error getting session:', error.message);
+        } else {
+          console.log('[Auth] Initial session:', session ? 'exists' : 'null');
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
+      } catch (error) {
+        console.log('[Auth] Exception getting session:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('[Auth] Auth state changed:', _event);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    initAuth();
 
-    return () => subscription.unsubscribe();
+    let subscription: { unsubscribe: () => void } | null = null;
+    
+    try {
+      const authListener = supabase.auth.onAuthStateChange((_event, session) => {
+        console.log('[Auth] Auth state changed:', _event);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      });
+      subscription = authListener.data.subscription;
+    } catch (error) {
+      console.log('[Auth] Error setting up auth listener:', error);
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
