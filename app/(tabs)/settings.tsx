@@ -173,18 +173,21 @@ export default function SettingsScreen() {
                   </TouchableOpacity>
                 )}
               </View>
+            </View>
 
-              <View style={styles.authDivider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>ou continue sem conta</Text>
-                <View style={styles.dividerLine} />
+            <View style={styles.benefitsSection}>
+              <Text style={styles.benefitsTitle}>Por que criar uma conta?</Text>
+              <View style={styles.benefitItem}>
+                <Cloud size={16} color={colors.primary} strokeWidth={1.5} />
+                <Text style={styles.benefitText}>Sincronize seus dados na nuvem</Text>
               </View>
-
-              <View style={styles.offlineNotice}>
-                <CloudOff size={16} color={colors.textMuted} strokeWidth={1.5} />
-                <Text style={styles.offlineNoticeText}>
-                  Seus dados ficam salvos apenas neste dispositivo
-                </Text>
+              <View style={styles.benefitItem}>
+                <Shield size={16} color={colors.primary} strokeWidth={1.5} />
+                <Text style={styles.benefitText}>Backup automático e seguro</Text>
+              </View>
+              <View style={styles.benefitItem}>
+                <User size={16} color={colors.primary} strokeWidth={1.5} />
+                <Text style={styles.benefitText}>Acesse de qualquer dispositivo</Text>
               </View>
             </View>
           </View>
@@ -582,33 +585,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.primary,
   },
-  authDivider: {
+  benefitsSection: {
+    marginTop: 20,
+    padding: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  benefitsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 14,
+  },
+  benefitItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
-    gap: 12,
+    gap: 10,
+    marginBottom: 10,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  offlineNotice: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: 10,
-  },
-  offlineNoticeText: {
+  benefitText: {
     fontSize: 13,
-    color: colors.textMuted,
+    color: colors.textSecondary,
   },
   // Operações e Setores
   operationItem: {
