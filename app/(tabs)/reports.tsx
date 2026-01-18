@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Lock, Crown } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
@@ -9,8 +9,15 @@ import { useApp } from '@/contexts/AppContext';
 
 export default function ReportsScreen() {
   const router = useRouter();
-  const { expenses, operations, sectors, getOperationsBySector, isPremiumFeature } = useApp();
+  const { expenses, operations, sectors, getOperationsBySector, loadData } = useApp();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  }, [loadData]);
 
   const monthlyData = useMemo(() => {
     const month = selectedMonth.getMonth();
@@ -129,59 +136,6 @@ export default function ReportsScreen() {
   const maxTotal = Math.max(...monthlyData.operationTotals.map(item => item.total), 1);
   const maxSectorTotal = Math.max(...monthlyData.sectorTotals.map(item => item.total), 1);
 
-  if (isPremiumFeature('reports')) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Relatórios</Text>
-        </View>
-
-        <View style={styles.lockedContainer}>
-          <View style={styles.lockedIcon}>
-            <Lock size={32} color={colors.primary} />
-          </View>
-          <Text style={styles.lockedTitle}>Relatórios Premium</Text>
-          <Text style={styles.lockedDescription}>
-            Desbloqueie relatórios detalhados para acompanhar seus gastos por operação, mês e categoria.
-          </Text>
-          <View style={styles.featuresList}>
-            <View style={styles.featureItem}>
-              <View style={styles.featureCheck}>
-                <Crown size={12} color={colors.primary} />
-              </View>
-              <Text style={styles.featureText}>Relatórios mensais detalhados</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <View style={styles.featureCheck}>
-                <Crown size={12} color={colors.primary} />
-              </View>
-              <Text style={styles.featureText}>Comparativo entre meses</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <View style={styles.featureCheck}>
-                <Crown size={12} color={colors.primary} />
-              </View>
-              <Text style={styles.featureText}>Distribuição por operação</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <View style={styles.featureCheck}>
-                <Crown size={12} color={colors.primary} />
-              </View>
-              <Text style={styles.featureText}>Gráficos e visualizações</Text>
-            </View>
-          </View>
-          <TouchableOpacity 
-            style={styles.upgradeButton}
-            onPress={() => router.push('/subscription')}
-          >
-            <Crown size={18} color={colors.textLight} />
-            <Text style={styles.upgradeButtonText}>Ver Planos</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -206,7 +160,13 @@ export default function ReportsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Total do Mês</Text>
           <Text style={styles.summaryValue}>{formatCurrency(monthlyData.totalMonth)}</Text>

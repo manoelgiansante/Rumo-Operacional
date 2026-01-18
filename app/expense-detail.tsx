@@ -201,7 +201,7 @@ export default function ExpenseDetailScreen() {
               <Text style={styles.valueLabel}>Valor da Nota</Text>
               <Text style={[
                 styles.valueAmount,
-                expense.invoiceValue && expense.invoiceValue !== expense.agreedValue && styles.valueError
+                expense.invoiceValue && expense.invoiceValue !== expense.agreedValue ? styles.valueError : undefined
               ]}>
                 {expense.invoiceValue ? formatCurrency(expense.invoiceValue) : '—'}
               </Text>

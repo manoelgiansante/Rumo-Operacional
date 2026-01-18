@@ -1,12 +1,21 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { X, Check, Star, Zap } from 'lucide-react-native';
+import { X, Check, Star, Zap, Shield, Infinity, RefreshCw } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { subscriptionPlans } from '@/mocks/data';
 
 export default function SubscriptionScreen() {
   const router = useRouter();
+  const plan = subscriptionPlans[0]; // Plano único premium
+
+  const handleSubscribe = () => {
+    Alert.alert(
+      'Assinatura',
+      'Funcionalidade de pagamento em desenvolvimento. Em breve você poderá assinar o plano Premium!',
+      [{ text: 'OK' }]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -14,7 +23,7 @@ export default function SubscriptionScreen() {
         <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
           <X size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Planos</Text>
+        <Text style={styles.headerTitle}>Plano Premium</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -23,67 +32,91 @@ export default function SubscriptionScreen() {
           <View style={styles.heroIcon}>
             <Zap size={32} color={colors.accent} />
           </View>
-          <Text style={styles.heroTitle}>Potencialize sua Gestão</Text>
+          <Text style={styles.heroTitle}>Agrofinance Premium</Text>
           <Text style={styles.heroSubtitle}>
-            Escolha o plano ideal para sua fazenda
+            Gestão completa para sua propriedade rural
           </Text>
         </View>
 
-        {subscriptionPlans.map((plan, index) => (
-          <View 
-            key={plan.id} 
-            style={[
-              styles.planCard,
-              plan.isPopular && styles.planCardPopular,
-            ]}
-          >
-            {plan.isPopular && (
-              <View style={styles.popularBadge}>
-                <Star size={12} color={colors.textLight} />
-                <Text style={styles.popularText}>Mais Popular</Text>
-              </View>
-            )}
-
-            <View style={styles.planHeader}>
-              <Text style={styles.planName}>{plan.name}</Text>
-              <View style={styles.planPricing}>
-                <Text style={styles.planCurrency}>R$</Text>
-                <Text style={styles.planPrice}>
-                  {plan.price.toFixed(2).replace('.', ',')}
-                </Text>
-                <Text style={styles.planPeriod}>/mês</Text>
-              </View>
-            </View>
-
-            <View style={styles.planFeatures}>
-              {plan.features.map((feature, idx) => (
-                <View key={idx} style={styles.featureRow}>
-                  <View style={[
-                    styles.checkIcon,
-                    plan.isPopular && styles.checkIconPopular
-                  ]}>
-                    <Check size={14} color={plan.isPopular ? colors.primary : colors.success} />
-                  </View>
-                  <Text style={styles.featureText}>{feature}</Text>
-                </View>
-              ))}
-            </View>
-
-            <TouchableOpacity 
-              style={[
-                styles.planButton,
-                plan.isPopular && styles.planButtonPopular,
-              ]}
-            >
-              <Text style={[
-                styles.planButtonText,
-                plan.isPopular && styles.planButtonTextPopular,
-              ]}>
-                {plan.id === 'starter' ? 'Começar Grátis' : 'Assinar Agora'}
-              </Text>
-            </TouchableOpacity>
+        {/* Card do Plano Único */}
+        <View style={[styles.planCard, styles.planCardPopular]}>
+          <View style={styles.popularBadge}>
+            <Star size={12} color={colors.textLight} />
+            <Text style={styles.popularText}>Plano Completo</Text>
           </View>
-        ))}
+
+          <View style={styles.planHeader}>
+            <Text style={styles.planName}>{plan.name}</Text>
+            <View style={styles.planPricing}>
+              <Text style={styles.planCurrency}>R$</Text>
+              <Text style={styles.planPrice}>
+                {plan.price.toFixed(2).replace('.', ',')}
+              </Text>
+              <Text style={styles.planPeriod}>/mês</Text>
+            </View>
+          </View>
+
+          <View style={styles.planFeatures}>
+            {plan.features.map((feature, idx) => (
+              <View key={idx} style={styles.featureRow}>
+                <View style={[styles.checkIcon, styles.checkIconPopular]}>
+                  <Check size={14} color={colors.primary} />
+                </View>
+                <Text style={styles.featureText}>{feature}</Text>
+              </View>
+            ))}
+          </View>
+
+          <TouchableOpacity 
+            style={[styles.planButton, styles.planButtonPopular]}
+            onPress={handleSubscribe}
+          >
+            <Text style={[styles.planButtonText, styles.planButtonTextPopular]}>
+              Assinar Agora
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Benefícios */}
+        <View style={styles.benefitsSection}>
+          <Text style={styles.benefitsTitle}>Por que escolher o Premium?</Text>
+          
+          <View style={styles.benefitCard}>
+            <View style={styles.benefitIcon}>
+              <Infinity size={20} color={colors.primary} strokeWidth={1.5} />
+            </View>
+            <View style={styles.benefitContent}>
+              <Text style={styles.benefitTitle}>Sem Limites</Text>
+              <Text style={styles.benefitDescription}>
+                Cadastre quantos setores, operações e lançamentos precisar
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.benefitCard}>
+            <View style={styles.benefitIcon}>
+              <RefreshCw size={20} color={colors.primary} strokeWidth={1.5} />
+            </View>
+            <View style={styles.benefitContent}>
+              <Text style={styles.benefitTitle}>Sincronização na Nuvem</Text>
+              <Text style={styles.benefitDescription}>
+                Seus dados seguros e acessíveis em qualquer dispositivo
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.benefitCard}>
+            <View style={styles.benefitIcon}>
+              <Shield size={20} color={colors.primary} strokeWidth={1.5} />
+            </View>
+            <View style={styles.benefitContent}>
+              <Text style={styles.benefitTitle}>Suporte Prioritário</Text>
+              <Text style={styles.benefitDescription}>
+                Atendimento rápido para todas as suas dúvidas
+              </Text>
+            </View>
+          </View>
+        </View>
 
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>Dúvidas frequentes</Text>
@@ -307,6 +340,48 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     lineHeight: 20,
+  },
+  benefitsSection: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  benefitsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 16,
+  },
+  benefitCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  benefitIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  benefitContent: {
+    flex: 1,
+  },
+  benefitTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  benefitDescription: {
+    fontSize: 13,
+    color: colors.textMuted,
+    lineHeight: 18,
   },
   bottomSpacing: {
     height: 40,

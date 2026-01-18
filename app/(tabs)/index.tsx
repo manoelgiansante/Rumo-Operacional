@@ -18,13 +18,14 @@ import { useApp } from '@/contexts/AppContext';
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { operations, expenses, getMonthlyTotal, currentPlanId, currentPlan, sectors, getOperationsBySector } = useApp();
+  const { operations, expenses, getMonthlyTotal, currentPlanId, currentPlan, sectors, getOperationsBySector, loadData } = useApp();
   const [refreshing, setRefreshing] = useState(false);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+    await loadData();
+    setRefreshing(false);
+  }, [loadData]);
 
   const totalPending = expenses
     .filter(e => e.status === 'pending' || e.status === 'verified')

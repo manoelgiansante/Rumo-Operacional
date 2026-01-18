@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { 
   CheckCircle2, 
   AlertTriangle,
@@ -16,8 +16,15 @@ type TabType = 'pending' | 'discrepancy' | 'verified';
 
 export default function VerificationScreen() {
   const router = useRouter();
-  const { expenses, operations, updateExpense } = useApp();
+  const { expenses, operations, updateExpense, loadData } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('pending');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  }, [loadData]);
 
   const pendingExpenses = expenses.filter(e => e.status === 'pending');
   const discrepancyExpenses = expenses.filter(e => e.status === 'discrepancy');
@@ -126,7 +133,13 @@ export default function VerificationScreen() {
         ))}
       </View>
 
-      <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.list} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {getFilteredExpenses().length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
@@ -174,7 +187,7 @@ export default function VerificationScreen() {
                     <Text style={styles.valueLabel}>Nota Fiscal</Text>
                     <Text style={[
                       styles.valueAmount,
-                      hasDifference && styles.valueAmountError
+                      hasDifference ? styles.valueAmountError : undefined
                     ]}>
                       {expense.invoiceValue ? formatCurrency(expense.invoiceValue) : '—'}
                     </Text>

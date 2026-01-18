@@ -1,16 +1,23 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Search, Plus, Calendar } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 
 export default function ExpensesScreen() {
   const router = useRouter();
-  const { expenses, operations } = useApp();
+  const { expenses, operations, loadData } = useApp();
   const [search, setSearch] = useState('');
   const [selectedOperation, setSelectedOperation] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  }, [loadData]);
 
   const filteredExpenses = expenses.filter(expense => {
     const matchesSearch = expense.description.toLowerCase().includes(search.toLowerCase()) ||
@@ -89,7 +96,13 @@ export default function ExpensesScreen() {
         ))}
       </ScrollView>
 
-      <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.list} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {filteredExpenses.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyTitle}>Nenhum lançamento</Text>

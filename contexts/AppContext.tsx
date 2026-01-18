@@ -8,6 +8,9 @@ import { useAuth } from './AuthContext';
 
 const STORAGE_KEYS = {
   SUBSCRIPTION: '@agrofinance_subscription',
+  LOCAL_SECTORS: '@agrofinance_sectors',
+  LOCAL_OPERATIONS: '@agrofinance_operations',
+  LOCAL_EXPENSES: '@agrofinance_expenses',
 };
 
 export const [AppProvider, useApp] = createContextHook(() => {
@@ -16,29 +19,57 @@ export const [AppProvider, useApp] = createContextHook(() => {
   const [operations, setOperations] = useState<Operation[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPlanId, setCurrentPlanId] = useState<string>('free');
+  const [currentPlanId, setCurrentPlanId] = useState<string>('premium');
 
   const currentPlan = useMemo(() => {
     return subscriptionPlans.find(p => p.id === currentPlanId) || subscriptionPlans[0];
   }, [currentPlanId]);
 
+  // Sempre permite adicionar operações (sem limite)
   const canAddOperation = useMemo(() => {
-    if (currentPlan.operationsLimit === -1) return true;
-    return operations.length < currentPlan.operationsLimit;
-  }, [operations.length, currentPlan]);
+    return true;
+  }, []);
 
-  const isPremiumFeature = useCallback((feature: 'reports' | 'export' | 'verification' | 'multiUser') => {
-    if (currentPlanId === 'free') {
-      return true;
+  // Todas as features estão disponíveis
+  const isPremiumFeature = useCallback((_feature: 'reports' | 'export' | 'verification' | 'multiUser') => {
+    return false; // Nenhuma feature é bloqueada
+  }, []);
+
+  // Carregar dados locais quando não está autenticado
+  const loadLocalData = useCallback(async () => {
+    try {
+      const [storedSectors, storedOperations, storedExpenses] = await Promise.all([
+        AsyncStorage.getItem(STORAGE_KEYS.LOCAL_SECTORS),
+        AsyncStorage.getItem(STORAGE_KEYS.LOCAL_OPERATIONS),
+        AsyncStorage.getItem(STORAGE_KEYS.LOCAL_EXPENSES),
+      ]);
+
+      if (storedSectors) setSectors(JSON.parse(storedSectors));
+      if (storedOperations) setOperations(JSON.parse(storedOperations));
+      if (storedExpenses) setExpenses(JSON.parse(storedExpenses));
+    } catch (error) {
+      console.log('[App] Error loading local data:', error);
     }
-    if (currentPlanId === 'starter') {
-      return feature === 'export' || feature === 'multiUser';
+  }, []);
+
+  // Salvar dados locais
+  const saveLocalData = useCallback(async (newSectors?: Sector[], newOperations?: Operation[], newExpenses?: Expense[]) => {
+    try {
+      if (newSectors) await AsyncStorage.setItem(STORAGE_KEYS.LOCAL_SECTORS, JSON.stringify(newSectors));
+      if (newOperations) await AsyncStorage.setItem(STORAGE_KEYS.LOCAL_OPERATIONS, JSON.stringify(newOperations));
+      if (newExpenses) await AsyncStorage.setItem(STORAGE_KEYS.LOCAL_EXPENSES, JSON.stringify(newExpenses));
+    } catch (error) {
+      console.log('[App] Error saving local data:', error);
     }
-    return false;
-  }, [currentPlanId]);
+  }, []);
 
   const loadData = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      // Carregar dados locais se não estiver autenticado
+      await loadLocalData();
+      setIsLoading(false);
+      return;
+    }
     
     setIsLoading(true);
     try {
@@ -124,18 +155,15 @@ export const [AppProvider, useApp] = createContextHook(() => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, loadLocalData]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
       console.log('[App] User authenticated, loading data from Supabase...');
       loadData();
     } else {
-      console.log('[App] User not authenticated, clearing data...');
-      setSectors([]);
-      setOperations([]);
-      setExpenses([]);
-      setIsLoading(false);
+      console.log('[App] User not authenticated, loading local data...');
+      loadData(); // Carrega dados locais
     }
   }, [isAuthenticated, user, loadData]);
 
@@ -167,9 +195,18 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
 
   const addSector = useCallback(async (sector: Omit<Sector, 'id' | 'createdAt'>) => {
+    // Modo local (sem autenticação)
     if (!user) {
-      console.log('[App] Cannot add sector: user not authenticated');
-      return null;
+      const newSector: Sector = {
+        id: Date.now().toString(),
+        ...sector,
+        createdAt: new Date().toISOString(),
+      };
+      const newSectors = [newSector, ...sectors];
+      setSectors(newSectors);
+      await saveLocalData(newSectors, undefined, undefined);
+      console.log('[App] Sector added locally:', newSector.id);
+      return newSector;
     }
 
     console.log('[App] Adding sector:', sector.name);
@@ -204,9 +241,18 @@ export const [AppProvider, useApp] = createContextHook(() => {
     setSectors(prev => [newSector, ...prev]);
     console.log('[App] Sector added successfully:', newSector.id);
     return newSector;
-  }, [user]);
+  }, [user, sectors, saveLocalData]);
 
   const updateSector = useCallback(async (id: string, updates: Partial<Sector>) => {
+    // Modo local
+    if (!user) {
+      const newSectors = sectors.map(s => s.id === id ? { ...s, ...updates } : s);
+      setSectors(newSectors);
+      await saveLocalData(newSectors, undefined, undefined);
+      console.log('[App] Sector updated locally');
+      return;
+    }
+
     console.log('[App] Updating sector:', id);
     const dbUpdates: Record<string, unknown> = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
@@ -227,9 +273,18 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
     setSectors(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
     console.log('[App] Sector updated successfully');
-  }, []);
+  }, [user, sectors, saveLocalData]);
 
   const deleteSector = useCallback(async (id: string) => {
+    // Modo local
+    if (!user) {
+      const newSectors = sectors.filter(s => s.id !== id);
+      setSectors(newSectors);
+      await saveLocalData(newSectors, undefined, undefined);
+      console.log('[App] Sector deleted locally');
+      return;
+    }
+
     console.log('[App] Deleting sector:', id);
     const { error } = await supabase
       .from('sectors')
@@ -243,7 +298,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
     setSectors(prev => prev.filter(s => s.id !== id));
     console.log('[App] Sector deleted successfully');
-  }, []);
+  }, [user, sectors, saveLocalData]);
 
   const getSectorById = useCallback((id: string) => {
     return sectors.find(s => s.id === id);
@@ -254,9 +309,18 @@ export const [AppProvider, useApp] = createContextHook(() => {
   }, [operations]);
 
   const addOperation = useCallback(async (operation: Omit<Operation, 'id' | 'createdAt'>) => {
+    // Modo local
     if (!user) {
-      console.log('[App] Cannot add operation: user not authenticated');
-      return null;
+      const newOperation: Operation = {
+        id: Date.now().toString(),
+        ...operation,
+        createdAt: new Date().toISOString(),
+      };
+      const newOperations = [newOperation, ...operations];
+      setOperations(newOperations);
+      await saveLocalData(undefined, newOperations, undefined);
+      console.log('[App] Operation added locally:', newOperation.id);
+      return newOperation;
     }
 
     console.log('[App] Adding operation:', operation.name);
@@ -293,9 +357,18 @@ export const [AppProvider, useApp] = createContextHook(() => {
     setOperations(prev => [newOperation, ...prev]);
     console.log('[App] Operation added successfully:', newOperation.id);
     return newOperation;
-  }, [user]);
+  }, [user, operations, saveLocalData]);
 
   const updateOperation = useCallback(async (id: string, updates: Partial<Operation>) => {
+    // Modo local
+    if (!user) {
+      const newOperations = operations.map(op => op.id === id ? { ...op, ...updates } : op);
+      setOperations(newOperations);
+      await saveLocalData(undefined, newOperations, undefined);
+      console.log('[App] Operation updated locally');
+      return;
+    }
+
     console.log('[App] Updating operation:', id);
     const dbUpdates: Record<string, unknown> = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
@@ -317,9 +390,18 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
     setOperations(prev => prev.map(op => op.id === id ? { ...op, ...updates } : op));
     console.log('[App] Operation updated successfully');
-  }, []);
+  }, [user, operations, saveLocalData]);
 
   const deleteOperation = useCallback(async (id: string) => {
+    // Modo local
+    if (!user) {
+      const newOperations = operations.filter(op => op.id !== id);
+      setOperations(newOperations);
+      await saveLocalData(undefined, newOperations, undefined);
+      console.log('[App] Operation deleted locally');
+      return;
+    }
+
     console.log('[App] Deleting operation:', id);
     const { error } = await supabase
       .from('operations')
@@ -333,12 +415,21 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
     setOperations(prev => prev.filter(op => op.id !== id));
     console.log('[App] Operation deleted successfully');
-  }, []);
+  }, [user, operations, saveLocalData]);
 
   const addExpense = useCallback(async (expense: Omit<Expense, 'id' | 'createdAt'>) => {
+    // Modo local
     if (!user) {
-      console.log('[App] Cannot add expense: user not authenticated');
-      return null;
+      const newExpense: Expense = {
+        id: Date.now().toString(),
+        ...expense,
+        createdAt: new Date().toISOString(),
+      };
+      const newExpenses = [newExpense, ...expenses];
+      setExpenses(newExpenses);
+      await saveLocalData(undefined, undefined, newExpenses);
+      console.log('[App] Expense added locally:', newExpense.id);
+      return newExpense;
     }
 
     console.log('[App] Adding expense:', expense.description);
@@ -395,9 +486,18 @@ export const [AppProvider, useApp] = createContextHook(() => {
     setExpenses(prev => [newExpense, ...prev]);
     console.log('[App] Expense added successfully:', newExpense.id);
     return newExpense;
-  }, [user]);
+  }, [user, expenses, saveLocalData]);
 
   const updateExpense = useCallback(async (id: string, updates: Partial<Expense>) => {
+    // Modo local
+    if (!user) {
+      const newExpenses = expenses.map(exp => exp.id === id ? { ...exp, ...updates } : exp);
+      setExpenses(newExpenses);
+      await saveLocalData(undefined, undefined, newExpenses);
+      console.log('[App] Expense updated locally');
+      return;
+    }
+
     console.log('[App] Updating expense:', id);
     const dbUpdates: Record<string, unknown> = {};
     if (updates.description !== undefined) dbUpdates.description = updates.description;
@@ -425,9 +525,18 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
     setExpenses(prev => prev.map(exp => exp.id === id ? { ...exp, ...updates } : exp));
     console.log('[App] Expense updated successfully');
-  }, []);
+  }, [user, expenses, saveLocalData]);
 
   const deleteExpense = useCallback(async (id: string) => {
+    // Modo local
+    if (!user) {
+      const newExpenses = expenses.filter(exp => exp.id !== id);
+      setExpenses(newExpenses);
+      await saveLocalData(undefined, undefined, newExpenses);
+      console.log('[App] Expense deleted locally');
+      return;
+    }
+
     console.log('[App] Deleting expense:', id);
     const { error } = await supabase
       .from('expenses')
@@ -441,7 +550,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
     setExpenses(prev => prev.filter(exp => exp.id !== id));
     console.log('[App] Expense deleted successfully');
-  }, []);
+  }, [user, expenses, saveLocalData]);
 
   const getOperationById = useCallback((id: string) => {
     return operations.find(op => op.id === id);
@@ -527,5 +636,6 @@ export const [AppProvider, useApp] = createContextHook(() => {
     isPremiumFeature,
     upgradePlan,
     refreshData,
+    loadData,
   };
 });
