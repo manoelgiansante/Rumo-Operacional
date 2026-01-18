@@ -29,7 +29,7 @@ export default function EditOperationScreen() {
       setName(operation.name);
       setDescription(operation.description || '');
       setSelectedColor(operation.color);
-      setSelectedSectorId(operation.sector_id || '');
+      setSelectedSectorId(operation.sectorId || '');
     }
   }, [operation]);
 
@@ -50,7 +50,7 @@ export default function EditOperationScreen() {
       name: name.trim(),
       description: description.trim(),
       color: selectedColor,
-      sector_id: selectedSectorId || undefined,
+      sectorId: selectedSectorId || undefined,
     });
 
     router.back();
