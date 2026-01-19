@@ -21,7 +21,9 @@ import {
   Eye,
   EyeOff,
   Leaf,
-  BookOpen
+  BookOpen,
+  Link,
+  DollarSign
 } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
@@ -373,6 +375,29 @@ export default function SettingsScreen() {
               </Text>
             </View>
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Integração Apps Rumo */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Integração</Text>
+          
+          <TouchableOpacity 
+            style={styles.integrationCard}
+            onPress={() => router.push('/finance-integration' as any)}
+          >
+            <View style={[styles.integrationIcon, { backgroundColor: colors.success + '20' }]}>
+              <DollarSign size={20} color={colors.success} strokeWidth={1.5} />
+            </View>
+            <View style={styles.integrationInfo}>
+              <Text style={styles.integrationTitle}>Rumo Finance</Text>
+              <Text style={styles.integrationText}>
+                Gestão financeira completa conectada
+              </Text>
+            </View>
+            <View style={styles.connectedBadge}>
+              <Link size={14} color={colors.textLight} strokeWidth={2} />
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -768,6 +793,45 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: colors.text,
+  },
+  // Integração
+  integrationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.success + '30',
+  },
+  integrationIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  integrationInfo: {
+    flex: 1,
+  },
+  integrationTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  integrationText: {
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  connectedBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   // Footer
   footer: {
