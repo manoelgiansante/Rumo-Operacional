@@ -151,10 +151,27 @@ export default function AddExpenseScreen() {
 
   const selectedOperationData = operations.find(op => op.id === selectedOperation);
 
+  const hasUnsavedData = description.trim() || supplier.trim() || agreedValue || notes.trim();
+
+  const handleClose = () => {
+    if (hasUnsavedData) {
+      Alert.alert(
+        'Descartar alterações?',
+        'Você tem dados não salvos. Deseja sair sem salvar?',
+        [
+          { text: 'Continuar editando', style: 'cancel' },
+          { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
+        ]
+      );
+    } else {
+      router.back();
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
           <X size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Novo Lançamento</Text>

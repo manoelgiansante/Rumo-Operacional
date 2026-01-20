@@ -21,9 +21,7 @@ import {
   Eye,
   EyeOff,
   Leaf,
-  BookOpen,
-  Link,
-  DollarSign
+  BookOpen
 } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
@@ -128,7 +126,7 @@ export default function SettingsScreen() {
               <View style={styles.heroLogo}>
                 <Leaf size={32} color={colors.primary} strokeWidth={1.5} />
               </View>
-              <Text style={styles.heroTitle}>Agrofinance</Text>
+              <Text style={styles.heroTitle}>Rumo Operacional</Text>
               <Text style={styles.heroSubtitle}>Gestão de Custo Operacional Rural</Text>
             </View>
 
@@ -378,29 +376,6 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Integração Apps Rumo */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Integração</Text>
-          
-          <TouchableOpacity 
-            style={styles.integrationCard}
-            onPress={() => router.push('/finance-integration' as any)}
-          >
-            <View style={[styles.integrationIcon, { backgroundColor: colors.success + '20' }]}>
-              <DollarSign size={20} color={colors.success} strokeWidth={1.5} />
-            </View>
-            <View style={styles.integrationInfo}>
-              <Text style={styles.integrationTitle}>Rumo Finance</Text>
-              <Text style={styles.integrationText}>
-                Gestão financeira completa conectada
-              </Text>
-            </View>
-            <View style={styles.connectedBadge}>
-              <Link size={14} color={colors.textLight} strokeWidth={2} />
-            </View>
-          </TouchableOpacity>
-        </View>
-
         {/* Suporte */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Suporte</Text>
@@ -413,7 +388,14 @@ export default function SettingsScreen() {
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => Alert.alert(
+              'Central de Ajuda',
+              'Em breve você terá acesso a tutoriais, FAQs e suporte direto.\n\nPor enquanto, use o botão "Ver Tutorial" acima para aprender a usar o app.',
+              [{ text: 'Entendi', style: 'default' }]
+            )}
+          >
             <View style={styles.menuIcon}>
               <HelpCircle size={18} color={colors.textSecondary} strokeWidth={1.5} />
             </View>
@@ -421,7 +403,14 @@ export default function SettingsScreen() {
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => Alert.alert(
+              'Política de Privacidade',
+              'Seus dados são armazenados de forma segura e criptografada.\n\n• Não compartilhamos seus dados com terceiros\n• Você pode exportar ou excluir seus dados a qualquer momento\n• Utilizamos criptografia de ponta a ponta\n\nPolítica completa em breve.',
+              [{ text: 'Entendi', style: 'default' }]
+            )}
+          >
             <View style={styles.menuIcon}>
               <Shield size={18} color={colors.textSecondary} strokeWidth={1.5} />
             </View>
@@ -431,8 +420,8 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Agrofinance v1.0.0</Text>
-          <Text style={styles.footerSubtext}>Custo Operacional Rural</Text>
+          <Text style={styles.footerText}>Rumo Operacional v1.0.0</Text>
+          <Text style={styles.footerSubtext}>Gestão de Custo Operacional Rural</Text>
         </View>
 
         <View style={styles.bottomSpacing} />
@@ -793,45 +782,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: colors.text,
-  },
-  // Integração
-  integrationCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.success + '30',
-  },
-  integrationIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  integrationInfo: {
-    flex: 1,
-  },
-  integrationTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  integrationText: {
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  connectedBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.success,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   // Footer
   footer: {

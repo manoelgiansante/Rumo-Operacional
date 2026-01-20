@@ -11,7 +11,10 @@ import {
   Clock,
   CheckCircle2,
   Crown,
-  Sparkles
+  Sparkles,
+  FolderOpen,
+  Layers,
+  ArrowRight
 } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
@@ -90,8 +93,8 @@ export default function DashboardScreen() {
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>agrofinance</Text>
-            <Text style={styles.subtitle}>Custo Operacional</Text>
+            <Text style={styles.title}>Rumo</Text>
+            <Text style={styles.subtitle}>Operacional</Text>
           </View>
           <TouchableOpacity 
             style={styles.addButton}
@@ -180,41 +183,71 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
 
-          {sectors.filter(s => s.isActive).map((sector) => {
-            const sectorOperations = getOperationsBySector(sector.id);
-            const sectorTotal = sectorOperations.reduce((sum, op) => sum + getOperationTotal(op.id), 0);
-            
-            return (
-              <View key={sector.id} style={styles.sectorCard}>
-                <View style={styles.sectorHeader}>
-                  <View style={[styles.sectorIndicator, { backgroundColor: sector.color }]} />
-                  <View style={styles.sectorInfo}>
-                    <Text style={styles.sectorName}>{sector.name}</Text>
-                    <Text style={styles.sectorDescription}>{sector.description}</Text>
-                  </View>
-                  <Text style={styles.sectorTotal}>{formatCurrency(sectorTotal)}</Text>
-                </View>
-                
-                {sectorOperations.filter(op => op.isActive).map((operation) => (
-                  <TouchableOpacity 
-                    key={operation.id}
-                    style={styles.operationCard}
-                    onPress={() => router.push(`/(tabs)/expenses?operation=${operation.id}`)}
-                  >
-                    <View style={[styles.operationIndicator, { backgroundColor: operation.color }]} />
-                    <View style={styles.operationInfo}>
-                      <Text style={styles.operationName}>{operation.name}</Text>
-                      <Text style={styles.operationDescription}>{operation.description}</Text>
-                    </View>
-                    <View style={styles.operationValue}>
-                      <Text style={styles.operationTotal}>{formatCurrency(getOperationTotal(operation.id))}</Text>
-                      <ChevronRight size={16} color={colors.textMuted} strokeWidth={1.5} />
-                    </View>
-                  </TouchableOpacity>
-                ))}
+          {sectors.filter(s => s.isActive).length === 0 ? (
+            <View style={styles.emptyStateCard}>
+              <View style={styles.emptyStateIcon}>
+                <FolderOpen size={32} color={colors.primary} strokeWidth={1.5} />
               </View>
-            );
-          })}
+              <Text style={styles.emptyStateTitle}>Nenhum setor cadastrado</Text>
+              <Text style={styles.emptyStateText}>
+                Comece criando seu primeiro setor para organizar suas operações agrícolas
+              </Text>
+              <TouchableOpacity 
+                style={styles.emptyStateCTA}
+                onPress={() => router.push('/add-sector')}
+              >
+                <Plus size={18} color="#fff" strokeWidth={2} />
+                <Text style={styles.emptyStateCTAText}>Criar Primeiro Setor</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            sectors.filter(s => s.isActive).map((sector) => {
+              const sectorOperations = getOperationsBySector(sector.id);
+              const sectorTotal = sectorOperations.reduce((sum, op) => sum + getOperationTotal(op.id), 0);
+              
+              return (
+                <View key={sector.id} style={styles.sectorCard}>
+                  <View style={styles.sectorHeader}>
+                    <View style={[styles.sectorIndicator, { backgroundColor: sector.color }]} />
+                    <View style={styles.sectorInfo}>
+                      <Text style={styles.sectorName}>{sector.name}</Text>
+                      <Text style={styles.sectorDescription}>{sector.description}</Text>
+                    </View>
+                    <Text style={styles.sectorTotal}>{formatCurrency(sectorTotal)}</Text>
+                  </View>
+                  
+                  {sectorOperations.filter(op => op.isActive).length === 0 ? (
+                    <TouchableOpacity 
+                      style={styles.emptyOperationsHint}
+                      onPress={() => router.push('/add-operation')}
+                    >
+                      <Layers size={16} color={colors.textMuted} strokeWidth={1.5} />
+                      <Text style={styles.emptyOperationsText}>Adicione uma operação a este setor</Text>
+                      <ArrowRight size={14} color={colors.primary} strokeWidth={2} />
+                    </TouchableOpacity>
+                  ) : (
+                    sectorOperations.filter(op => op.isActive).map((operation) => (
+                      <TouchableOpacity 
+                        key={operation.id}
+                        style={styles.operationCard}
+                        onPress={() => router.push(`/(tabs)/expenses?operation=${operation.id}`)}
+                      >
+                        <View style={[styles.operationIndicator, { backgroundColor: operation.color }]} />
+                        <View style={styles.operationInfo}>
+                          <Text style={styles.operationName}>{operation.name}</Text>
+                          <Text style={styles.operationDescription}>{operation.description}</Text>
+                        </View>
+                        <View style={styles.operationValue}>
+                          <Text style={styles.operationTotal}>{formatCurrency(getOperationTotal(operation.id))}</Text>
+                          <ChevronRight size={16} color={colors.textMuted} strokeWidth={1.5} />
+                        </View>
+                      </TouchableOpacity>
+                    ))
+                  )}
+                </View>
+              );
+            })
+          )}
 
           <View style={styles.addOperationRow}>
             <TouchableOpacity 
@@ -240,30 +273,38 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
 
-          {expenses.slice(0, 3).map((expense) => {
-            const operation = operations.find(op => op.id === expense.operationId);
-            return (
-              <TouchableOpacity 
-                key={expense.id}
-                style={styles.expenseCard}
-                onPress={() => router.push(`/expense-detail?id=${expense.id}`)}
-              >
-                <View style={[styles.expenseIndicator, { backgroundColor: operation?.color || colors.primary }]} />
-                <View style={styles.expenseInfo}>
-                  <Text style={styles.expenseDescription}>{expense.description}</Text>
-                  <Text style={styles.expenseSupplier}>{expense.supplier}</Text>
-                </View>
-                <View style={styles.expenseRight}>
-                  <Text style={styles.expenseValue}>{formatCurrency(expense.agreedValue)}</Text>
-                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(expense.status) + '12' }]}>
-                    <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
-                      {getStatusLabel(expense.status)}
-                    </Text>
+          {expenses.length === 0 ? (
+            <View style={styles.emptyExpensesCard}>
+              <Text style={styles.emptyExpensesText}>
+                Você ainda não tem lançamentos. Clique no botão + para adicionar seu primeiro.
+              </Text>
+            </View>
+          ) : (
+            expenses.slice(0, 3).map((expense) => {
+              const operation = operations.find(op => op.id === expense.operationId);
+              return (
+                <TouchableOpacity 
+                  key={expense.id}
+                  style={styles.expenseCard}
+                  onPress={() => router.push(`/expense-detail?id=${expense.id}`)}
+                >
+                  <View style={[styles.expenseIndicator, { backgroundColor: operation?.color || colors.primary }]} />
+                  <View style={styles.expenseInfo}>
+                    <Text style={styles.expenseDescription}>{expense.description}</Text>
+                    <Text style={styles.expenseSupplier}>{expense.supplier}</Text>
                   </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+                  <View style={styles.expenseRight}>
+                    <Text style={styles.expenseValue}>{formatCurrency(expense.agreedValue)}</Text>
+                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(expense.status) + '12' }]}>
+                      <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
+                        {getStatusLabel(expense.status)}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
         </View>
 
         <View style={styles.bottomSpacing} />
@@ -625,5 +666,79 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500' as const,
     color: colors.primary,
+  },
+  // Empty State Styles
+  emptyStateCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center' as const,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderStyle: 'dashed' as const,
+  },
+  emptyStateIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.primary + '15',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 17,
+    fontWeight: '600' as const,
+    color: colors.text,
+    marginBottom: 8,
+    textAlign: 'center' as const,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: colors.textMuted,
+    textAlign: 'center' as const,
+    lineHeight: 20,
+    marginBottom: 20,
+    paddingHorizontal: 16,
+  },
+  emptyStateCTA: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  emptyStateCTAText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#fff',
+  },
+  emptyOperationsHint: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+    padding: 14,
+    backgroundColor: colors.background,
+  },
+  emptyOperationsText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  emptyExpensesCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center' as const,
+  },
+  emptyExpensesText: {
+    fontSize: 14,
+    color: colors.textMuted,
+    textAlign: 'center' as const,
+    lineHeight: 20,
   },
 });
