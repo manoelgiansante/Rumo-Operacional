@@ -109,8 +109,8 @@ class SupabaseSyncService {
       await this.syncProfileToMaquinas(profilePrincipal);
       syncedProfiles++;
 
-      // 3. Buscar assinatura ativa
-      const subscription = await this.getActiveSubscription(userId);
+      // 3. Buscar assinatura ativa (passando email)
+      const subscription = await this.getActiveSubscription(userId, email);
       
       // 4. Sincronizar assinatura com Máquinas
       if (subscription) {
@@ -249,19 +249,37 @@ class SupabaseSyncService {
   // =====================================================
   // BUSCAR ASSINATURA ATIVA
   // =====================================================
-  private async getActiveSubscription(userId: string): Promise<SyncSubscription | null> {
+  private async getActiveSubscription(userId: string, email?: string): Promise<SyncSubscription | null> {
     try {
+      // Buscar por email na tabela user_subscriptions
+      if (!email) {
+        const { data: userData } = await this.principal.auth.getUser();
+        email = userData?.user?.email;
+      }
+      
+      if (!email) return null;
+
       const { data, error } = await this.principal
-        .from('subscriptions')
+        .from('user_subscriptions')
         .select('*')
-        .eq('user_id', userId)
-        .in('status', ['active', 'trial'])
-        .order('created_at', { ascending: false })
-        .limit(1)
+        .eq('email', email)
         .single();
 
       if (error || !data) return null;
-      return data;
+      
+      // Converter para formato interno
+      const plan = data.custo_operacional_plan || data.gestao_rural_plan || 'free';
+      const isExpired = data.expires_at && new Date(data.expires_at) < new Date();
+      
+      return {
+        id: data.id,
+        user_id: userId,
+        plan: plan,
+        status: isExpired ? 'expired' : (plan === 'free' ? 'trial' : 'active'),
+        starts_at: data.created_at,
+        expires_at: data.expires_at,
+        apps_included: ['operacional', 'finance', 'maquinas'],
+      };
     } catch (error) {
       console.log('[Sync] Erro ao buscar assinatura:', error);
       return null;
@@ -464,11 +482,18 @@ class SupabaseSyncService {
     reason?: string;
   }> {
     try {
+      // Buscar email do usuário
+      const { data: userData } = await this.principal.auth.getUser();
+      const email = userData?.user?.email;
+      
+      if (!email) {
+        return { hasAccess: false, reason: 'Usuário não autenticado' };
+      }
+
       const { data: subscription } = await this.principal
-        .from('subscriptions')
+        .from('user_subscriptions')
         .select('*')
-        .eq('user_id', userId)
-        .in('status', ['active', 'trial'])
+        .eq('email', email)
         .single();
 
       if (!subscription) {
@@ -480,13 +505,15 @@ class SupabaseSyncService {
         return { hasAccess: false, reason: 'Assinatura expirada' };
       }
 
-      // Verificar se app está incluído
-      const appsIncluded = subscription.apps_included || [];
-      if (!appsIncluded.includes(appName)) {
-        return { hasAccess: false, reason: `App ${appName} não incluído no plano` };
+      // Verificar plano por app
+      const plan = subscription.custo_operacional_plan || subscription.gestao_rural_plan || 'free';
+      
+      // Trial ou plano pago tem acesso a tudo
+      if (plan !== 'free' || !subscription.expires_at || new Date(subscription.expires_at) > new Date()) {
+        return { hasAccess: true };
       }
 
-      return { hasAccess: true };
+      return { hasAccess: false, reason: 'Plano não inclui este app' };
     } catch (error) {
       console.error('[SSO] Erro ao verificar acesso:', error);
       return { hasAccess: false, reason: 'Erro ao verificar acesso' };
@@ -498,19 +525,25 @@ class SupabaseSyncService {
   // =====================================================
   async updateSubscriptionAndSync(
     userId: string,
-    updates: Partial<SyncSubscription>
+    email: string,
+    updates: { plan?: string; expires_at?: string }
   ): Promise<boolean> {
     try {
-      // 1. Atualizar no principal
+      // 1. Atualizar no principal (user_subscriptions)
       const { error } = await this.principal
-        .from('subscriptions')
-        .update(updates)
-        .eq('user_id', userId);
+        .from('user_subscriptions')
+        .update({
+          custo_operacional_plan: updates.plan,
+          gestao_rural_plan: updates.plan,
+          expires_at: updates.expires_at,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('email', email);
 
       if (error) throw error;
 
       // 2. Buscar assinatura atualizada
-      const subscription = await this.getActiveSubscription(userId);
+      const subscription = await this.getActiveSubscription(userId, email);
       
       // 3. Sincronizar com Máquinas
       if (subscription) {

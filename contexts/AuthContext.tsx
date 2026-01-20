@@ -7,12 +7,28 @@ import { Session, User } from '@supabase/supabase-js';
 // =====================================================
 // TIPOS - SISTEMA INTEGRADO RUMO (SSO)
 // =====================================================
-export type SubscriptionPlan = 'free' | 'premium' | 'enterprise';
+export type SubscriptionPlan = 'free' | 'starter' | 'professional' | 'enterprise';
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'trial';
 
+// Estrutura da tabela user_subscriptions existente
+export interface UserSubscription {
+  id: string;
+  email: string;
+  gestao_rural_plan: string | null;
+  custo_operacional_plan: string | null;
+  custo_op_bonus: boolean;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Interface adaptada para uso no app
 export interface Subscription {
   id: string;
   user_id: string;
+  email: string;
   plan: SubscriptionPlan;
   status: SubscriptionStatus;
   starts_at: string;
@@ -20,6 +36,10 @@ export interface Subscription {
   created_at: string;
   apps_included: string[];
   features: string[];
+  // Campos específicos do banco
+  gestao_rural_plan?: string | null;
+  custo_operacional_plan?: string | null;
+  custo_op_bonus?: boolean;
 }
 
 export interface UserProfile {
@@ -71,48 +91,86 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const loadSubscription = useCallback(async (userId: string): Promise<Subscription | null> => {
     setIsLoadingSubscription(true);
     try {
+      // Buscar por email do usuário
+      const { data: userData } = await supabase.auth.getUser();
+      const userEmail = userData?.user?.email;
+      
+      if (!userEmail) {
+        setIsLoadingSubscription(false);
+        return null;
+      }
+
+      // Usar tabela user_subscriptions existente
       const { data, error } = await supabase
-        .from('subscriptions')
+        .from('user_subscriptions')
         .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
+        .eq('email', userEmail)
         .single();
 
       if (data) {
-        // Verificar expiração
+        // Converter para formato interno
+        const plan = data.custo_operacional_plan || data.gestao_rural_plan || 'free';
         const isExpired = data.expires_at && new Date(data.expires_at) < new Date();
-        if (isExpired && data.status === 'active') {
-          await supabase.from('subscriptions').update({ status: 'expired' }).eq('id', data.id);
-          data.status = 'expired';
-        }
-        setSubscription(data);
+        
+        const subscription: Subscription = {
+          id: data.id,
+          user_id: userId,
+          email: data.email,
+          plan: (plan as SubscriptionPlan) || 'free',
+          status: isExpired ? 'expired' : (plan === 'free' ? 'trial' : 'active'),
+          starts_at: data.created_at,
+          expires_at: data.expires_at,
+          created_at: data.created_at,
+          apps_included: ['operacional', 'finance', 'maquinas'],
+          features: plan !== 'free' ? ['unlimited_entries', 'advanced_reports', 'pdf_export'] : ['basic_reports'],
+          gestao_rural_plan: data.gestao_rural_plan,
+          custo_operacional_plan: data.custo_operacional_plan,
+          custo_op_bonus: data.custo_op_bonus,
+        };
+
+        setSubscription(subscription);
         setIsLoadingSubscription(false);
-        return data;
+        return subscription;
       }
 
-      // Criar trial de 7 dias com acesso TOTAL a todos os apps
-      const trialSubscription = {
-        user_id: userId,
-        plan: 'free' as SubscriptionPlan,
-        status: 'trial' as SubscriptionStatus,
-        starts_at: new Date().toISOString(),
+      // Criar entrada de trial se não existir
+      const trialData = {
+        email: userEmail,
+        gestao_rural_plan: 'free',
+        custo_operacional_plan: 'free',
+        custo_op_bonus: false,
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        apps_included: ['operacional', 'finance', 'maquinas'],
-        features: ['basic_reports', 'limited_entries', 'integration'],
       };
 
       const { data: created } = await supabase
-        .from('subscriptions')
-        .insert(trialSubscription)
+        .from('user_subscriptions')
+        .insert(trialData)
         .select()
         .single();
 
       if (created) {
-        setSubscription(created);
+        const subscription: Subscription = {
+          id: created.id,
+          user_id: userId,
+          email: created.email,
+          plan: 'free',
+          status: 'trial',
+          starts_at: created.created_at,
+          expires_at: created.expires_at,
+          created_at: created.created_at,
+          apps_included: ['operacional', 'finance', 'maquinas'],
+          features: ['basic_reports', 'limited_entries'],
+          gestao_rural_plan: created.gestao_rural_plan,
+          custo_operacional_plan: created.custo_operacional_plan,
+          custo_op_bonus: created.custo_op_bonus,
+        };
+        setSubscription(subscription);
+        setIsLoadingSubscription(false);
+        return subscription;
       }
+      
       setIsLoadingSubscription(false);
-      return created || null;
+      return null;
     } catch (error) {
       console.log('[Auth] Error loading subscription:', error);
       setIsLoadingSubscription(false);
@@ -176,15 +234,19 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   // =====================================================
   const hasAccessToApp = useCallback((appName: string): boolean => {
     if (!subscription) return false;
-    if (subscription.plan === 'premium' || subscription.plan === 'enterprise') {
+    const isPaid = subscription.plan === 'professional' || subscription.plan === 'enterprise' || subscription.plan === 'starter';
+    if (isPaid) {
       return subscription.status === 'active' || subscription.status === 'trial';
     }
+    // Trial tem acesso a todos os apps
+    if (subscription.status === 'trial') return true;
     return subscription.apps_included?.includes(appName) ?? false;
   }, [subscription]);
 
   const hasFeature = useCallback((featureName: string): boolean => {
     if (!subscription) return false;
-    if (subscription.plan === 'premium') return subscription.status === 'active';
+    const isPaid = subscription.plan === 'professional' || subscription.plan === 'enterprise';
+    if (isPaid) return subscription.status === 'active';
     return subscription.features?.includes(featureName) ?? false;
   }, [subscription]);
 
@@ -206,28 +268,31 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   // UPGRADE APÓS PAGAMENTO
   // =====================================================
   const upgradeSubscription = useCallback(async (plan: SubscriptionPlan): Promise<boolean> => {
-    if (!user) return false;
+    if (!user || !subscription?.email) return false;
     try {
       const newExpiration = new Date();
       newExpiration.setMonth(newExpiration.getMonth() + 1);
 
+      // Atualizar na tabela user_subscriptions
       const updates = {
-        plan,
-        status: 'active' as SubscriptionStatus,
-        starts_at: new Date().toISOString(),
+        custo_operacional_plan: plan,
+        gestao_rural_plan: plan,
         expires_at: newExpiration.toISOString(),
-        apps_included: ['operacional', 'finance', 'maquinas'],
-        features: ['unlimited_entries', 'advanced_reports', 'pdf_export', 'excel_export', 
-                   'multi_farm', 'team_members', 'priority_support', 'integrations', 'api_access'],
+        updated_at: new Date().toISOString(),
       };
 
-      if (subscription?.id) {
-        await supabase.from('subscriptions').update(updates).eq('id', subscription.id);
-      } else {
-        await supabase.from('subscriptions').insert({ ...updates, user_id: user.id });
-      }
+      await supabase
+        .from('user_subscriptions')
+        .update(updates)
+        .eq('email', subscription.email);
 
       await loadSubscription(user.id);
+      
+      // Sincronizar com outros bancos via SSO
+      if (user.email) {
+        ssoService.forceSyncAll(user.id, user.email);
+      }
+      
       return true;
     } catch (error) {
       console.log('[Auth] Upgrade error:', error);
@@ -308,7 +373,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     profile, updateProfile,
     // Assinatura integrada
     subscription, isLoadingSubscription,
-    isPremium: subscription?.plan === 'premium' || subscription?.plan === 'enterprise',
+    isPremium: subscription?.plan === 'professional' || subscription?.plan === 'enterprise',
     isTrial: subscription?.status === 'trial',
     isActive: subscription?.status === 'active' || subscription?.status === 'trial',
     // Verificações
