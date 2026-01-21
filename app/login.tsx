@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mail, Lock, Eye, EyeOff, Leaf, X } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, X, ArrowRight } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 
 export default function LoginScreen() {
@@ -106,9 +106,10 @@ export default function LoginScreen() {
 
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Leaf size={48} color={colors.primary} />
+              <Text style={styles.logoText}>R</Text>
             </View>
-            <Text style={styles.title}>AgroFinance</Text>
+            <Text style={styles.title}>Rumo</Text>
+            <Text style={styles.titleSecondary}>Operacional</Text>
             <Text style={styles.subtitle}>
               {isLogin ? 'Entre na sua conta' : 'Crie sua conta'}
             </Text>
@@ -188,9 +189,12 @@ export default function LoginScreen() {
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.submitButtonText}>
-                  {isLogin ? 'Entrar' : 'Criar conta'}
-                </Text>
+                <View style={styles.submitButtonContent}>
+                  <Text style={styles.submitButtonText}>
+                    {isLogin ? 'Entrar' : 'Criar conta'}
+                  </Text>
+                  <ArrowRight size={20} color="#fff" />
+                </View>
               )}
             </TouchableOpacity>
 
@@ -225,45 +229,68 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: 24,
+    justifyContent: 'center',
   },
   closeButton: {
-    alignSelf: 'flex-end',
+    position: 'absolute',
+    top: 0,
+    right: 0,
     padding: 8,
+    zIndex: 10,
   },
   header: {
     alignItems: 'center',
-    marginTop: 20,
     marginBottom: 40,
   },
   logoContainer: {
     width: 80,
     height: 80,
     borderRadius: 20,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  logoText: {
+    fontSize: 40,
+    fontWeight: '700' as const,
+    color: '#fff',
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700' as const,
     color: colors.text,
+    letterSpacing: -0.5,
+  },
+  titleSecondary: {
+    fontSize: 18,
+    fontWeight: '500' as const,
+    color: colors.textSecondary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: colors.textSecondary,
+    color: colors.textMuted,
+    marginTop: 8,
   },
   errorContainer: {
     backgroundColor: '#FEE2E2',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FECACA',
   },
   errorText: {
     color: '#DC2626',
     fontSize: 14,
     textAlign: 'center',
+    fontWeight: '500' as const,
   },
   form: {
     gap: 16,
@@ -272,14 +299,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 14,
+    borderWidth: 1.5,
     borderColor: colors.border,
     paddingHorizontal: 16,
-    height: 56,
+    height: 58,
   },
   inputIcon: {
-    marginRight: 12,
+    marginRight: 14,
   },
   input: {
     flex: 1,
@@ -288,29 +315,41 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     padding: 8,
+    marginRight: -8,
   },
   forgotButton: {
     alignSelf: 'flex-end',
+    paddingVertical: 4,
   },
   forgotText: {
     color: colors.primary,
     fontSize: 14,
-    fontWeight: '500' as const,
+    fontWeight: '600' as const,
   },
   submitButton: {
     backgroundColor: colors.primary,
-    height: 56,
-    borderRadius: 12,
+    height: 58,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   submitButtonDisabled: {
     opacity: 0.7,
   },
+  submitButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   submitButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600' as const,
   },
   switchContainer: {
@@ -318,15 +357,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    marginTop: 16,
+    marginTop: 24,
+    paddingVertical: 16,
   },
   switchText: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: 15,
   },
   switchButton: {
     color: colors.primary,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600' as const,
   },
 });
