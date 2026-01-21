@@ -147,8 +147,13 @@ function WebLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default function TabLayout() {
-  // Na web, usar layout com sidebar
-  if (Platform.OS === 'web') {
+  const { width } = useWindowDimensions();
+  
+  // Detecta se é mobile baseado na largura da tela
+  const isMobileWeb = Platform.OS === 'web' && width < MOBILE_BREAKPOINT;
+  
+  // Na web DESKTOP, usar layout com sidebar
+  if (Platform.OS === 'web' && !isMobileWeb) {
     return (
       <WebLayout>
         <Tabs
@@ -167,7 +172,7 @@ export default function TabLayout() {
     );
   }
   
-  // No mobile, usar tabs padrão
+  // No mobile (app nativo OU web mobile), usar tabs na parte inferior
   return (
     <Tabs
       screenOptions={{
@@ -180,8 +185,8 @@ export default function TabLayout() {
           elevation: 0,
           shadowOpacity: 0,
           paddingTop: 8,
-          paddingBottom: 8,
-          height: 64,
+          paddingBottom: Platform.OS === 'web' ? 8 : 8,
+          height: Platform.OS === 'web' ? 60 : 64,
         },
         tabBarLabelStyle: {
           fontSize: 11,
