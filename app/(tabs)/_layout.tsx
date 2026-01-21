@@ -177,14 +177,17 @@ export default function TabLayout() {
             backgroundColor: colors.surface,
             borderTopWidth: 1,
             borderTopColor: colors.border,
-            paddingTop: 8,
-            paddingBottom: 12,
-            height: 65,
+            paddingTop: 6,
+            paddingBottom: 20,
+            height: 75,
           },
           tabBarLabelStyle: {
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: '500',
-            letterSpacing: 0.2,
+            marginTop: 2,
+          },
+          tabBarIconStyle: {
+            marginBottom: 0,
           },
         }}
       >
@@ -192,35 +195,35 @@ export default function TabLayout() {
           name="index"
           options={{
             title: 'Início',
-            tabBarIcon: ({ color }) => <Home size={22} color={color} strokeWidth={1.5} />,
+            tabBarIcon: ({ color }) => <Home size={20} color={color} strokeWidth={1.5} />,
           }}
         />
         <Tabs.Screen
           name="expenses"
           options={{
-            title: 'Lançamentos',
-            tabBarIcon: ({ color }) => <FileText size={22} color={color} strokeWidth={1.5} />,
+            title: 'Lanç.',
+            tabBarIcon: ({ color }) => <FileText size={20} color={color} strokeWidth={1.5} />,
           }}
         />
         <Tabs.Screen
           name="verification"
           options={{
-            title: 'Verificação',
-            tabBarIcon: ({ color }) => <CheckCircle size={22} color={color} strokeWidth={1.5} />,
+            title: 'Verif.',
+            tabBarIcon: ({ color }) => <CheckCircle size={20} color={color} strokeWidth={1.5} />,
           }}
         />
         <Tabs.Screen
           name="reports"
           options={{
-            title: 'Relatórios',
-            tabBarIcon: ({ color }) => <BarChart3 size={22} color={color} strokeWidth={1.5} />,
+            title: 'Relat.',
+            tabBarIcon: ({ color }) => <BarChart3 size={20} color={color} strokeWidth={1.5} />,
           }}
         />
         <Tabs.Screen
           name="settings"
           options={{
-            title: 'Config',
-            tabBarIcon: ({ color }) => <Settings size={22} color={color} strokeWidth={1.5} />,
+            title: 'Config.',
+            tabBarIcon: ({ color }) => <Settings size={20} color={color} strokeWidth={1.5} />,
           }}
         />
       </Tabs>
