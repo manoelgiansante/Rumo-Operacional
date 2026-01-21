@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  RefreshControl,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useState, useCallback } from 'react';
@@ -19,8 +27,9 @@ export default function ExpensesScreen() {
     setRefreshing(false);
   }, [loadData]);
 
-  const filteredExpenses = expenses.filter(expense => {
-    const matchesSearch = expense.description.toLowerCase().includes(search.toLowerCase()) ||
+  const filteredExpenses = expenses.filter((expense) => {
+    const matchesSearch =
+      expense.description.toLowerCase().includes(search.toLowerCase()) ||
       expense.supplier.toLowerCase().includes(search.toLowerCase());
     const matchesOperation = !selectedOperation || expense.operationId === selectedOperation;
     return matchesSearch && matchesOperation;
@@ -41,10 +50,7 @@ export default function ExpensesScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Lançamentos</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => router.push('/add-expense')}
-        >
+        <TouchableOpacity style={styles.addButton} onPress={() => router.push('/add-expense')}>
           <Plus size={20} color={colors.textLight} strokeWidth={1.5} />
         </TouchableOpacity>
       </View>
@@ -62,13 +68,13 @@ export default function ExpensesScreen() {
         </View>
       </View>
 
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.filterScroll}
         contentContainerStyle={styles.filterContent}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.filterChip, !selectedOperation && styles.filterChipActive]}
           onPress={() => setSelectedOperation(null)}
         >
@@ -77,31 +83,33 @@ export default function ExpensesScreen() {
           </Text>
         </TouchableOpacity>
         {operations.map((operation) => (
-          <TouchableOpacity 
+          <TouchableOpacity
             key={operation.id}
             style={[
-              styles.filterChip, 
-              selectedOperation === operation.id && styles.filterChipActive
+              styles.filterChip,
+              selectedOperation === operation.id && styles.filterChipActive,
             ]}
-            onPress={() => setSelectedOperation(selectedOperation === operation.id ? null : operation.id)}
+            onPress={() =>
+              setSelectedOperation(selectedOperation === operation.id ? null : operation.id)
+            }
           >
             <View style={[styles.filterDot, { backgroundColor: operation.color }]} />
-            <Text style={[
-              styles.filterText,
-              selectedOperation === operation.id && styles.filterTextActive
-            ]}>
+            <Text
+              style={[
+                styles.filterText,
+                selectedOperation === operation.id && styles.filterTextActive,
+              ]}
+            >
               {operation.name}
             </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      <ScrollView 
-        style={styles.list} 
+      <ScrollView
+        style={styles.list}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {filteredExpenses.length === 0 ? (
           <View style={styles.emptyState}>
@@ -112,14 +120,19 @@ export default function ExpensesScreen() {
           </View>
         ) : (
           filteredExpenses.map((expense) => {
-            const operation = operations.find(op => op.id === expense.operationId);
+            const operation = operations.find((op) => op.id === expense.operationId);
             return (
-              <TouchableOpacity 
+              <TouchableOpacity
                 key={expense.id}
                 style={styles.expenseCard}
                 onPress={() => router.push(`/expense-detail?id=${expense.id}`)}
               >
-                <View style={[styles.expenseIndicator, { backgroundColor: operation?.color || colors.primary }]} />
+                <View
+                  style={[
+                    styles.expenseIndicator,
+                    { backgroundColor: operation?.color || colors.primary },
+                  ]}
+                />
                 <View style={styles.expenseContent}>
                   <View style={styles.expenseHeader}>
                     <Text style={styles.expenseDescription} numberOfLines={1}>
@@ -135,12 +148,19 @@ export default function ExpensesScreen() {
                     </View>
                   </View>
                   <View style={styles.expenseFooter}>
-                    <View style={[styles.operationBadge, { backgroundColor: operation?.color + '12' }]}>
+                    <View
+                      style={[styles.operationBadge, { backgroundColor: operation?.color + '12' }]}
+                    >
                       <Text style={[styles.operationBadgeText, { color: operation?.color }]}>
                         {operation?.name}
                       </Text>
                     </View>
-                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(expense.status) + '12' }]}>
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        { backgroundColor: getStatusColor(expense.status) + '12' },
+                      ]}
+                    >
                       <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
                         {getStatusLabel(expense.status)}
                       </Text>
@@ -159,21 +179,31 @@ export default function ExpensesScreen() {
 
 function getStatusColor(status: string): string {
   switch (status) {
-    case 'pending': return colors.warning;
-    case 'verified': return colors.info;
-    case 'discrepancy': return colors.error;
-    case 'paid': return colors.success;
-    default: return colors.textMuted;
+    case 'pending':
+      return colors.warning;
+    case 'verified':
+      return colors.info;
+    case 'discrepancy':
+      return colors.error;
+    case 'paid':
+      return colors.success;
+    default:
+      return colors.textMuted;
   }
 }
 
 function getStatusLabel(status: string): string {
   switch (status) {
-    case 'pending': return 'Pendente';
-    case 'verified': return 'Verificado';
-    case 'discrepancy': return 'Divergência';
-    case 'paid': return 'Pago';
-    default: return status;
+    case 'pending':
+      return 'Pendente';
+    case 'verified':
+      return 'Verificado';
+    case 'discrepancy':
+      return 'Divergência';
+    case 'paid':
+      return 'Pago';
+    default:
+      return status;
   }
 }
 

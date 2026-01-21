@@ -38,19 +38,16 @@ export interface MonthlyReport {
  * @param operationId - ID da operação
  * @returns Valor atribuído à operação
  */
-export const getExpenseValueForOperation = (
-  expense: Expense,
-  operationId: string
-): number => {
+export const getExpenseValueForOperation = (expense: Expense, operationId: string): number => {
   if (expense.isShared && expense.allocations) {
-    const allocation = expense.allocations.find(a => a.operationId === operationId);
+    const allocation = expense.allocations.find((a) => a.operationId === operationId);
     return allocation?.value || 0;
   }
-  
+
   if (expense.operationId === operationId) {
     return expense.agreedValue;
   }
-  
+
   return 0;
 };
 
@@ -66,7 +63,7 @@ export const filterExpensesByMonth = (
   month: number,
   year: number
 ): Expense[] => {
-  return expenses.filter(exp => {
+  return expenses.filter((exp) => {
     const expDate = new Date(exp.createdAt);
     return expDate.getMonth() === month && expDate.getFullYear() === year;
   });
@@ -82,29 +79,31 @@ export const calculateOperationTotals = (
   expenses: Expense[],
   operations: Operation[]
 ): OperationTotal[] => {
-  return operations.map(op => {
-    let total = 0;
-    let paid = 0;
-    let count = 0;
-    
-    expenses.forEach(exp => {
-      const value = getExpenseValueForOperation(exp, op.id);
-      if (value > 0) {
-        total += value;
-        if (exp.status === 'paid') paid += value;
-        count++;
-      }
-    });
-    
-    return {
-      operationId: op.id,
-      operationName: op.name,
-      total,
-      paid,
-      pending: total - paid,
-      count,
-    };
-  }).filter(item => item.total > 0);
+  return operations
+    .map((op) => {
+      let total = 0;
+      let paid = 0;
+      let count = 0;
+
+      expenses.forEach((exp) => {
+        const value = getExpenseValueForOperation(exp, op.id);
+        if (value > 0) {
+          total += value;
+          if (exp.status === 'paid') paid += value;
+          count++;
+        }
+      });
+
+      return {
+        operationId: op.id,
+        operationName: op.name,
+        total,
+        paid,
+        pending: total - paid,
+        count,
+      };
+    })
+    .filter((item) => item.total > 0);
 };
 
 /**
@@ -119,39 +118,41 @@ export const calculateSectorTotals = (
   sectors: Sector[],
   operations: Operation[]
 ): SectorTotal[] => {
-  return sectors.map(sector => {
-    const sectorOps = operations.filter(op => op.sectorId === sector.id);
-    const sectorOpIds = sectorOps.map(op => op.id);
-    
-    let total = 0;
-    let paid = 0;
-    let count = 0;
-    
-    expenses.forEach(exp => {
-      if (exp.isShared && exp.allocations) {
-        exp.allocations.forEach(allocation => {
-          if (sectorOpIds.includes(allocation.operationId)) {
-            total += allocation.value;
-            if (exp.status === 'paid') paid += allocation.value;
-            count++;
-          }
-        });
-      } else if (sectorOpIds.includes(exp.operationId)) {
-        total += exp.agreedValue;
-        if (exp.status === 'paid') paid += exp.agreedValue;
-        count++;
-      }
-    });
-    
-    return {
-      sectorId: sector.id,
-      sectorName: sector.name,
-      total,
-      paid,
-      pending: total - paid,
-      count,
-    };
-  }).filter(item => item.total > 0);
+  return sectors
+    .map((sector) => {
+      const sectorOps = operations.filter((op) => op.sectorId === sector.id);
+      const sectorOpIds = sectorOps.map((op) => op.id);
+
+      let total = 0;
+      let paid = 0;
+      let count = 0;
+
+      expenses.forEach((exp) => {
+        if (exp.isShared && exp.allocations) {
+          exp.allocations.forEach((allocation) => {
+            if (sectorOpIds.includes(allocation.operationId)) {
+              total += allocation.value;
+              if (exp.status === 'paid') paid += allocation.value;
+              count++;
+            }
+          });
+        } else if (sectorOpIds.includes(exp.operationId)) {
+          total += exp.agreedValue;
+          if (exp.status === 'paid') paid += exp.agreedValue;
+          count++;
+        }
+      });
+
+      return {
+        sectorId: sector.id,
+        sectorName: sector.name,
+        total,
+        paid,
+        pending: total - paid,
+        count,
+      };
+    })
+    .filter((item) => item.total > 0);
 };
 
 /**
@@ -171,15 +172,15 @@ export const calculateMonthlyReport = (
   year: number
 ): MonthlyReport => {
   const monthExpenses = filterExpensesByMonth(expenses, month, year);
-  
+
   const operationTotals = calculateOperationTotals(monthExpenses, operations);
   const sectorTotals = calculateSectorTotals(monthExpenses, sectors, operations);
-  
+
   const totalMonth = monthExpenses.reduce((sum, exp) => sum + exp.agreedValue, 0);
   const totalPaid = monthExpenses
-    .filter(e => e.status === 'paid')
+    .filter((e) => e.status === 'paid')
     .reduce((sum, e) => sum + e.agreedValue, 0);
-  
+
   return {
     operationTotals,
     sectorTotals,
@@ -212,10 +213,10 @@ export const distributeValueEqually = (
   operationIds: string[]
 ): { operationId: string; percentage: number; value: number }[] => {
   if (operationIds.length === 0) return [];
-  
+
   const equalPercentage = Math.floor(100 / operationIds.length);
-  const remainder = 100 - (equalPercentage * operationIds.length);
-  
+  const remainder = 100 - equalPercentage * operationIds.length;
+
   return operationIds.map((operationId, index) => {
     const percentage = equalPercentage + (index === 0 ? remainder : 0);
     return {
@@ -259,7 +260,9 @@ export const hasValueDiscrepancy = (
  * @param expenses - Lista de despesas
  * @returns Estatísticas
  */
-export const calculateExpenseStats = (expenses: Expense[]): {
+export const calculateExpenseStats = (
+  expenses: Expense[]
+): {
   total: number;
   average: number;
   max: number;
@@ -277,15 +280,15 @@ export const calculateExpenseStats = (expenses: Expense[]): {
       byStatus: {},
     };
   }
-  
-  const values = expenses.map(e => e.agreedValue);
+
+  const values = expenses.map((e) => e.agreedValue);
   const total = values.reduce((sum, v) => sum + v, 0);
-  
+
   const byStatus: Record<string, number> = {};
-  expenses.forEach(e => {
+  expenses.forEach((e) => {
     byStatus[e.status] = (byStatus[e.status] || 0) + e.agreedValue;
   });
-  
+
   return {
     total,
     average: total / expenses.length,

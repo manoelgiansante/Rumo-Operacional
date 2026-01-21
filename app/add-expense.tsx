@@ -1,4 +1,13 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Switch } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  Switch,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useState, useMemo } from 'react';
@@ -16,7 +25,7 @@ interface OperationAllocation {
 export default function AddExpenseScreen() {
   const router = useRouter();
   const { operations, addExpense } = useApp();
-  
+
   const [description, setDescription] = useState('');
   const [supplier, setSupplier] = useState('');
   const [agreedValue, setAgreedValue] = useState('');
@@ -26,7 +35,7 @@ export default function AddExpenseScreen() {
   const [notes, setNotes] = useState('');
   const [showOperationPicker, setShowOperationPicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  
+
   const [isSharedExpense, setIsSharedExpense] = useState(false);
   const [selectedOperations, setSelectedOperations] = useState<OperationAllocation[]>([]);
   const [showMultiOperationPicker, setShowMultiOperationPicker] = useState(false);
@@ -37,7 +46,7 @@ export default function AddExpenseScreen() {
 
   const allocations: ExpenseAllocation[] = useMemo(() => {
     const value = parseFloat(agreedValue) || 0;
-    return selectedOperations.map(op => ({
+    return selectedOperations.map((op) => ({
       operationId: op.operationId,
       percentage: op.percentage,
       value: (value * op.percentage) / 100,
@@ -45,28 +54,28 @@ export default function AddExpenseScreen() {
   }, [selectedOperations, agreedValue]);
 
   const toggleOperationSelection = (operationId: string) => {
-    const existing = selectedOperations.find(op => op.operationId === operationId);
+    const existing = selectedOperations.find((op) => op.operationId === operationId);
     if (existing) {
-      setSelectedOperations(prev => prev.filter(op => op.operationId !== operationId));
+      setSelectedOperations((prev) => prev.filter((op) => op.operationId !== operationId));
     } else {
       const remainingPercentage = 100 - totalPercentage;
       const defaultPercentage = remainingPercentage > 0 ? Math.min(remainingPercentage, 50) : 0;
-      setSelectedOperations(prev => [...prev, { operationId, percentage: defaultPercentage }]);
+      setSelectedOperations((prev) => [...prev, { operationId, percentage: defaultPercentage }]);
     }
   };
 
   const updateOperationPercentage = (operationId: string, percentage: number) => {
-    setSelectedOperations(prev => 
-      prev.map(op => op.operationId === operationId ? { ...op, percentage } : op)
+    setSelectedOperations((prev) =>
+      prev.map((op) => (op.operationId === operationId ? { ...op, percentage } : op))
     );
   };
 
   const distributeEqually = () => {
     if (selectedOperations.length === 0) return;
     const equalPercentage = Math.floor(100 / selectedOperations.length);
-    const remainder = 100 - (equalPercentage * selectedOperations.length);
-    
-    setSelectedOperations(prev => 
+    const remainder = 100 - equalPercentage * selectedOperations.length;
+
+    setSelectedOperations((prev) =>
       prev.map((op, index) => ({
         ...op,
         percentage: equalPercentage + (index === 0 ? remainder : 0),
@@ -79,7 +88,7 @@ export default function AddExpenseScreen() {
       Alert.alert('Erro', 'Informe a descrição do lançamento');
       return;
     }
-    
+
     if (isSharedExpense) {
       if (selectedOperations.length < 2) {
         Alert.alert('Erro', 'Selecione pelo menos 2 operações para ratear');
@@ -95,7 +104,7 @@ export default function AddExpenseScreen() {
         return;
       }
     }
-    
+
     if (!agreedValue || parseFloat(agreedValue) <= 0) {
       Alert.alert('Erro', 'Informe um valor válido');
       return;
@@ -105,8 +114,8 @@ export default function AddExpenseScreen() {
       return;
     }
 
-    const primaryOperationId = isSharedExpense 
-      ? selectedOperations[0]?.operationId 
+    const primaryOperationId = isSharedExpense
+      ? selectedOperations[0]?.operationId
       : selectedOperation;
 
     if (!primaryOperationId) {
@@ -149,20 +158,16 @@ export default function AddExpenseScreen() {
     }
   };
 
-  const selectedOperationData = operations.find(op => op.id === selectedOperation);
+  const selectedOperationData = operations.find((op) => op.id === selectedOperation);
 
   const hasUnsavedData = description.trim() || supplier.trim() || agreedValue || notes.trim();
 
   const handleClose = () => {
     if (hasUnsavedData) {
-      Alert.alert(
-        'Descartar alterações?',
-        'Você tem dados não salvos. Deseja sair sem salvar?',
-        [
-          { text: 'Continuar editando', style: 'cancel' },
-          { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
-        ]
-      );
+      Alert.alert('Descartar alterações?', 'Você tem dados não salvos. Deseja sair sem salvar?', [
+        { text: 'Continuar editando', style: 'cancel' },
+        { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
+      ]);
     } else {
       router.back();
     }
@@ -216,13 +221,15 @@ export default function AddExpenseScreen() {
         {!isSharedExpense ? (
           <View style={styles.field}>
             <Text style={styles.label}>Operação *</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.select}
               onPress={() => setShowOperationPicker(!showOperationPicker)}
             >
               {selectedOperationData ? (
                 <View style={styles.selectedOption}>
-                  <View style={[styles.optionDot, { backgroundColor: selectedOperationData.color }]} />
+                  <View
+                    style={[styles.optionDot, { backgroundColor: selectedOperationData.color }]}
+                  />
                   <Text style={styles.selectText}>{selectedOperationData.name}</Text>
                 </View>
               ) : (
@@ -230,10 +237,10 @@ export default function AddExpenseScreen() {
               )}
               <ChevronDown size={20} color={colors.textMuted} />
             </TouchableOpacity>
-            
+
             {showOperationPicker && (
               <View style={styles.picker}>
-                {operations.map(op => (
+                {operations.map((op) => (
                   <TouchableOpacity
                     key={op.id}
                     style={styles.pickerItem}
@@ -260,8 +267,8 @@ export default function AddExpenseScreen() {
                 </TouchableOpacity>
               )}
             </View>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.select}
               onPress={() => setShowMultiOperationPicker(!showMultiOperationPicker)}
             >
@@ -277,8 +284,8 @@ export default function AddExpenseScreen() {
 
             {showMultiOperationPicker && (
               <View style={styles.picker}>
-                {operations.map(op => {
-                  const isSelected = selectedOperations.some(s => s.operationId === op.id);
+                {operations.map((op) => {
+                  const isSelected = selectedOperations.some((s) => s.operationId === op.id);
                   return (
                     <TouchableOpacity
                       key={op.id}
@@ -297,15 +304,20 @@ export default function AddExpenseScreen() {
             {selectedOperations.length > 0 && (
               <View style={styles.allocationContainer}>
                 <Text style={styles.allocationTitle}>Distribuição do Rateio</Text>
-                {selectedOperations.map(allocation => {
-                  const op = operations.find(o => o.id === allocation.operationId);
+                {selectedOperations.map((allocation) => {
+                  const op = operations.find((o) => o.id === allocation.operationId);
                   const value = parseFloat(agreedValue) || 0;
                   const allocatedValue = (value * allocation.percentage) / 100;
-                  
+
                   return (
                     <View key={allocation.operationId} style={styles.allocationRow}>
                       <View style={styles.allocationInfo}>
-                        <View style={[styles.optionDotSmall, { backgroundColor: op?.color || colors.primary }]} />
+                        <View
+                          style={[
+                            styles.optionDotSmall,
+                            { backgroundColor: op?.color || colors.primary },
+                          ]}
+                        />
                         <Text style={styles.allocationName} numberOfLines={1}>
                           {op?.name || ''}
                         </Text>
@@ -317,7 +329,10 @@ export default function AddExpenseScreen() {
                           value={allocation.percentage.toString()}
                           onChangeText={(text) => {
                             const num = parseInt(text) || 0;
-                            updateOperationPercentage(allocation.operationId, Math.min(100, Math.max(0, num)));
+                            updateOperationPercentage(
+                              allocation.operationId,
+                              Math.min(100, Math.max(0, num))
+                            );
                           }}
                           maxLength={3}
                         />
@@ -329,8 +344,18 @@ export default function AddExpenseScreen() {
                     </View>
                   );
                 })}
-                <View style={[styles.allocationTotalRow, totalPercentage !== 100 && styles.allocationTotalError]}>
-                  <Text style={[styles.allocationTotalLabel, totalPercentage !== 100 && styles.allocationTotalErrorText]}>
+                <View
+                  style={[
+                    styles.allocationTotalRow,
+                    totalPercentage !== 100 && styles.allocationTotalError,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.allocationTotalLabel,
+                      totalPercentage !== 100 && styles.allocationTotalErrorText,
+                    ]}
+                  >
                     Total: {totalPercentage}%
                   </Text>
                   {totalPercentage !== 100 && (
@@ -355,7 +380,7 @@ export default function AddExpenseScreen() {
 
         <View style={styles.field}>
           <Text style={styles.label}>Categoria</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.select}
             onPress={() => setShowCategoryPicker(!showCategoryPicker)}
           >
@@ -364,10 +389,10 @@ export default function AddExpenseScreen() {
             </Text>
             <ChevronDown size={20} color={colors.textMuted} />
           </TouchableOpacity>
-          
+
           {showCategoryPicker && (
             <View style={styles.picker}>
-              {expenseCategories.map(cat => (
+              {expenseCategories.map((cat) => (
                 <TouchableOpacity
                   key={cat.id}
                   style={styles.pickerItem}

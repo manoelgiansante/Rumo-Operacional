@@ -1,16 +1,15 @@
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import { useState } from 'react';
-import { 
-  Leaf, 
-  PlusCircle, 
-  FolderOpen, 
-  FileText, 
-  CheckCircle2, 
+import {
+  Leaf,
+  PlusCircle,
+  FolderOpen,
+  CheckCircle2,
   BarChart3,
   Settings,
   ChevronRight,
   ChevronLeft,
-  X
+  X,
 } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 
@@ -25,12 +24,13 @@ const tutorialSteps = [
     icon: Leaf,
     iconColor: colors.primary,
     title: 'Bem-vindo ao Agrofinance!',
-    description: 'Gerencie todos os custos operacionais da sua propriedade rural de forma simples e organizada.',
+    description:
+      'Gerencie todos os custos operacionais da sua propriedade rural de forma simples e organizada.',
     tips: [
       'Controle gastos por setor e operação',
       'Acompanhe pagamentos e vencimentos',
-      'Gere relatórios detalhados'
-    ]
+      'Gere relatórios detalhados',
+    ],
   },
   {
     icon: FolderOpen,
@@ -40,8 +40,8 @@ const tutorialSteps = [
     tips: [
       'Ex: Talhão Norte, Área de Pastagem, Pomar',
       'Cada setor pode ter múltiplas operações',
-      'Vá em Config > Setores > + para criar'
-    ]
+      'Vá em Config > Setores > + para criar',
+    ],
   },
   {
     icon: Settings,
@@ -51,8 +51,8 @@ const tutorialSteps = [
     tips: [
       'Ex: Preparo de Solo, Plantio, Colheita',
       'Vincule operações aos setores',
-      'Vá em Config > Operações > + para criar'
-    ]
+      'Vá em Config > Operações > + para criar',
+    ],
   },
   {
     icon: PlusCircle,
@@ -62,8 +62,8 @@ const tutorialSteps = [
     tips: [
       'Informe fornecedor, valor e data',
       'Selecione a operação relacionada',
-      'Clique no + na tela inicial'
-    ]
+      'Clique no + na tela inicial',
+    ],
   },
   {
     icon: CheckCircle2,
@@ -73,8 +73,8 @@ const tutorialSteps = [
     tips: [
       'Compare valor combinado x valor da nota',
       'Identifique divergências facilmente',
-      'Marque como pago quando quitar'
-    ]
+      'Marque como pago quando quitar',
+    ],
   },
   {
     icon: BarChart3,
@@ -84,9 +84,9 @@ const tutorialSteps = [
     tips: [
       'Veja totais mensais e comparativos',
       'Identifique onde está gastando mais',
-      'Tome decisões baseadas em dados'
-    ]
-  }
+      'Tome decisões baseadas em dados',
+    ],
+  },
 ];
 
 export default function OnboardingTutorial({ onComplete }: OnboardingTutorialProps) {
@@ -118,13 +118,13 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   return (
     <View style={styles.container}>
       <View style={styles.overlay} />
-      
+
       <View style={styles.content}>
         <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
           <X size={20} color={colors.textMuted} strokeWidth={1.5} />
         </TouchableOpacity>
 
-        <ScrollView 
+        <ScrollView
           style={styles.scrollContent}
           contentContainerStyle={styles.scrollContentContainer}
           showsVerticalScrollIndicator={false}
@@ -149,13 +149,13 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         <View style={styles.footer}>
           <View style={styles.pagination}>
             {tutorialSteps.map((_, index) => (
-              <View 
-                key={index} 
+              <View
+                key={index}
                 style={[
                   styles.paginationDot,
                   index === currentStep && styles.paginationDotActive,
-                  index === currentStep && { backgroundColor: step.iconColor }
-                ]} 
+                  index === currentStep && { backgroundColor: step.iconColor },
+                ]}
               />
             ))}
           </View>
@@ -170,13 +170,11 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               <View style={styles.navButtonPlaceholder} />
             )}
 
-            <TouchableOpacity 
-              style={[styles.navButtonPrimary, { backgroundColor: step.iconColor }]} 
+            <TouchableOpacity
+              style={[styles.navButtonPrimary, { backgroundColor: step.iconColor }]}
               onPress={handleNext}
             >
-              <Text style={styles.navButtonPrimaryText}>
-                {isLastStep ? 'Começar' : 'Próximo'}
-              </Text>
+              <Text style={styles.navButtonPrimaryText}>{isLastStep ? 'Começar' : 'Próximo'}</Text>
               {!isLastStep && <ChevronRight size={18} color={colors.textLight} strokeWidth={1.5} />}
             </TouchableOpacity>
           </View>

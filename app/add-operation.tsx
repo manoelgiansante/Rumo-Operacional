@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -7,20 +15,28 @@ import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 
 const OPERATION_COLORS = [
-  '#8B4513', '#228B22', '#6B4423', '#4A90A4', '#9C27B0',
-  '#E91E63', '#FF9800', '#795548', '#607D8B', '#3F51B5',
+  '#8B4513',
+  '#228B22',
+  '#6B4423',
+  '#4A90A4',
+  '#9C27B0',
+  '#E91E63',
+  '#FF9800',
+  '#795548',
+  '#607D8B',
+  '#3F51B5',
 ];
 
 export default function AddOperationScreen() {
   const router = useRouter();
   const { addOperation, canAddOperation, currentPlan } = useApp();
-  
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(OPERATION_COLORS[0]);
   const [selectedSectorId, setSelectedSectorId] = useState<string>('');
   const [showSectorPicker, setShowSectorPicker] = useState(false);
-  
+
   const { sectors } = useApp();
 
   const handleSave = () => {
@@ -56,19 +72,21 @@ export default function AddOperationScreen() {
           <Text style={styles.title}>Nova Operação</Text>
           <View style={styles.headerSpacer} />
         </View>
-        
+
         <View style={styles.lockedContainer}>
           <View style={styles.lockedIcon}>
             <Lock size={32} color={colors.primary} />
           </View>
           <Text style={styles.lockedTitle}>Limite de Operações</Text>
           <Text style={styles.lockedDescription}>
-            Seu plano {currentPlan.name} permite apenas {currentPlan.operationsLimit} operação{currentPlan.operationsLimit > 1 ? 'ões' : ''}.
+            Seu plano {currentPlan.name} permite apenas {currentPlan.operationsLimit} operação
+            {currentPlan.operationsLimit > 1 ? 'ões' : ''}.
           </Text>
           <Text style={styles.lockedSubtext}>
-            Faça upgrade para adicionar mais operações e gerenciar múltiplas atividades da sua fazenda.
+            Faça upgrade para adicionar mais operações e gerenciar múltiplas atividades da sua
+            fazenda.
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.upgradeButton}
             onPress={() => router.push('/subscription')}
           >
@@ -103,13 +121,13 @@ export default function AddOperationScreen() {
 
         <View style={styles.field}>
           <Text style={styles.label}>Setor *</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.selectInput}
             onPress={() => setShowSectorPicker(!showSectorPicker)}
           >
             <Text style={selectedSectorId ? styles.selectText : styles.selectPlaceholder}>
-              {selectedSectorId 
-                ? sectors.find(s => s.id === selectedSectorId)?.name 
+              {selectedSectorId
+                ? sectors.find((s) => s.id === selectedSectorId)?.name
                 : 'Selecione um setor'}
             </Text>
             <ChevronDown size={20} color={colors.textMuted} />
@@ -121,7 +139,7 @@ export default function AddOperationScreen() {
                   key={sector.id}
                   style={[
                     styles.pickerItem,
-                    selectedSectorId === sector.id && styles.pickerItemSelected
+                    selectedSectorId === sector.id && styles.pickerItemSelected,
                   ]}
                   onPress={() => {
                     setSelectedSectorId(sector.id);
@@ -129,10 +147,12 @@ export default function AddOperationScreen() {
                   }}
                 >
                   <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
-                  <Text style={[
-                    styles.pickerItemText,
-                    selectedSectorId === sector.id && styles.pickerItemTextSelected
-                  ]}>
+                  <Text
+                    style={[
+                      styles.pickerItemText,
+                      selectedSectorId === sector.id && styles.pickerItemTextSelected,
+                    ]}
+                  >
                     {sector.name}
                   </Text>
                 </TouchableOpacity>
@@ -179,9 +199,7 @@ export default function AddOperationScreen() {
                 ]}
                 onPress={() => setSelectedColor(color)}
               >
-                {selectedColor === color && (
-                  <Check size={18} color="#fff" />
-                )}
+                {selectedColor === color && <Check size={18} color="#fff" />}
               </TouchableOpacity>
             ))}
           </View>

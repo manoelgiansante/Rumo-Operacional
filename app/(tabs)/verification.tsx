@@ -1,13 +1,16 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  RefreshControl,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useState, useCallback } from 'react';
-import { 
-  CheckCircle2, 
-  AlertTriangle,
-  Clock,
-  ChevronRight
-} from 'lucide-react-native';
+import { CheckCircle2, AlertTriangle, Clock, ChevronRight } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 import { Expense } from '@/types';
@@ -26,15 +29,18 @@ export default function VerificationScreen() {
     setRefreshing(false);
   }, [loadData]);
 
-  const pendingExpenses = expenses.filter(e => e.status === 'pending');
-  const discrepancyExpenses = expenses.filter(e => e.status === 'discrepancy');
-  const verifiedExpenses = expenses.filter(e => e.status === 'verified');
+  const pendingExpenses = expenses.filter((e) => e.status === 'pending');
+  const discrepancyExpenses = expenses.filter((e) => e.status === 'discrepancy');
+  const verifiedExpenses = expenses.filter((e) => e.status === 'verified');
 
   const getFilteredExpenses = () => {
     switch (activeTab) {
-      case 'pending': return pendingExpenses;
-      case 'discrepancy': return discrepancyExpenses;
-      case 'verified': return verifiedExpenses;
+      case 'pending':
+        return pendingExpenses;
+      case 'discrepancy':
+        return discrepancyExpenses;
+      case 'verified':
+        return verifiedExpenses;
     }
   };
 
@@ -44,11 +50,9 @@ export default function VerificationScreen() {
 
   const handleVerify = (expense: Expense) => {
     if (!expense.invoiceValue) {
-      Alert.alert(
-        'Verificação',
-        'Informe o valor da nota fiscal para verificar.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Verificação', 'Informe o valor da nota fiscal para verificar.', [
+        { text: 'OK' },
+      ]);
       router.push(`/expense-detail?id=${expense.id}`);
       return;
     }
@@ -59,19 +63,20 @@ export default function VerificationScreen() {
         `Valor combinado: ${formatCurrency(expense.agreedValue)}\nValor da nota: ${formatCurrency(expense.invoiceValue)}\n\nDiferença: ${formatCurrency(Math.abs(expense.invoiceValue - expense.agreedValue))}`,
         [
           { text: 'Cancelar', style: 'cancel' },
-          { 
-            text: 'Marcar Divergência', 
+          {
+            text: 'Marcar Divergência',
             style: 'destructive',
-            onPress: () => updateExpense(expense.id, { 
-              status: 'discrepancy',
-              verifiedBy: 'Usuário',
-              verificationNotes: `Divergência de ${formatCurrency(Math.abs(expense.invoiceValue! - expense.agreedValue))}`
-            })
+            onPress: () =>
+              updateExpense(expense.id, {
+                status: 'discrepancy',
+                verifiedBy: 'Usuário',
+                verificationNotes: `Divergência de ${formatCurrency(Math.abs(expense.invoiceValue! - expense.agreedValue))}`,
+              }),
           },
         ]
       );
     } else {
-      updateExpense(expense.id, { 
+      updateExpense(expense.id, {
         status: 'verified',
         verifiedBy: 'Usuário',
       });
@@ -79,20 +84,17 @@ export default function VerificationScreen() {
   };
 
   const handleMarkAsPaid = (expense: Expense) => {
-    Alert.alert(
-      'Confirmar Pagamento',
-      `Confirmar pagamento de "${expense.description}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Confirmar', 
-          onPress: () => updateExpense(expense.id, { 
+    Alert.alert('Confirmar Pagamento', `Confirmar pagamento de "${expense.description}"?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Confirmar',
+        onPress: () =>
+          updateExpense(expense.id, {
             status: 'paid',
             paymentDate: new Date().toISOString(),
-          })
-        },
-      ]
-    );
+          }),
+      },
+    ]);
   };
 
   const tabs: { key: TabType; label: string; count: number }[] = [
@@ -118,14 +120,10 @@ export default function VerificationScreen() {
             <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
               {tab.label}
             </Text>
-            <View style={[
-              styles.tabBadge, 
-              activeTab === tab.key && styles.tabBadgeActive
-            ]}>
-              <Text style={[
-                styles.tabBadgeText,
-                activeTab === tab.key && styles.tabBadgeTextActive
-              ]}>
+            <View style={[styles.tabBadge, activeTab === tab.key && styles.tabBadgeActive]}>
+              <Text
+                style={[styles.tabBadgeText, activeTab === tab.key && styles.tabBadgeTextActive]}
+              >
                 {tab.count}
               </Text>
             </View>
@@ -133,19 +131,23 @@ export default function VerificationScreen() {
         ))}
       </View>
 
-      <ScrollView 
-        style={styles.list} 
+      <ScrollView
+        style={styles.list}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {getFilteredExpenses().length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              {activeTab === 'pending' && <Clock size={40} color={colors.textMuted} strokeWidth={1.5} />}
-              {activeTab === 'discrepancy' && <AlertTriangle size={40} color={colors.textMuted} strokeWidth={1.5} />}
-              {activeTab === 'verified' && <CheckCircle2 size={40} color={colors.textMuted} strokeWidth={1.5} />}
+              {activeTab === 'pending' && (
+                <Clock size={40} color={colors.textMuted} strokeWidth={1.5} />
+              )}
+              {activeTab === 'discrepancy' && (
+                <AlertTriangle size={40} color={colors.textMuted} strokeWidth={1.5} />
+              )}
+              {activeTab === 'verified' && (
+                <CheckCircle2 size={40} color={colors.textMuted} strokeWidth={1.5} />
+              )}
             </View>
             <Text style={styles.emptyTitle}>
               {activeTab === 'pending' && 'Nenhum pendente'}
@@ -160,18 +162,21 @@ export default function VerificationScreen() {
           </View>
         ) : (
           getFilteredExpenses().map((expense) => {
-            const operation = operations.find(op => op.id === expense.operationId);
-            const hasDifference = expense.invoiceValue && expense.invoiceValue !== expense.agreedValue;
+            const operation = operations.find((op) => op.id === expense.operationId);
+            const hasDifference =
+              expense.invoiceValue && expense.invoiceValue !== expense.agreedValue;
 
             return (
               <View key={expense.id} style={styles.card}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.cardHeader}
                   onPress={() => router.push(`/expense-detail?id=${expense.id}`)}
                 >
                   <View style={[styles.operationDot, { backgroundColor: operation?.color }]} />
                   <View style={styles.cardInfo}>
-                    <Text style={styles.cardTitle} numberOfLines={1}>{expense.description}</Text>
+                    <Text style={styles.cardTitle} numberOfLines={1}>
+                      {expense.description}
+                    </Text>
                     <Text style={styles.cardSupplier}>{expense.supplier}</Text>
                   </View>
                   <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
@@ -185,10 +190,12 @@ export default function VerificationScreen() {
                   <View style={styles.valueDivider} />
                   <View style={styles.valueItem}>
                     <Text style={styles.valueLabel}>Nota Fiscal</Text>
-                    <Text style={[
-                      styles.valueAmount,
-                      hasDifference ? styles.valueAmountError : undefined
-                    ]}>
+                    <Text
+                      style={[
+                        styles.valueAmount,
+                        hasDifference ? styles.valueAmountError : undefined,
+                      ]}
+                    >
                       {expense.invoiceValue ? formatCurrency(expense.invoiceValue) : '—'}
                     </Text>
                   </View>
@@ -213,7 +220,7 @@ export default function VerificationScreen() {
 
                 <View style={styles.cardActions}>
                   {activeTab === 'pending' && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.actionButton}
                       onPress={() => handleVerify(expense)}
                     >
@@ -222,7 +229,7 @@ export default function VerificationScreen() {
                     </TouchableOpacity>
                   )}
                   {activeTab === 'verified' && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={[styles.actionButton, styles.actionButtonSuccess]}
                       onPress={() => handleMarkAsPaid(expense)}
                     >
@@ -231,7 +238,7 @@ export default function VerificationScreen() {
                     </TouchableOpacity>
                   )}
                   {activeTab === 'discrepancy' && (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={[styles.actionButton, styles.actionButtonOutline]}
                       onPress={() => router.push(`/expense-detail?id=${expense.id}`)}
                     >

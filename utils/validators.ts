@@ -18,7 +18,7 @@ export const isNotEmpty = (value: string | undefined | null): boolean => {
  */
 export const isPositiveNumber = (value: string | number | undefined | null): boolean => {
   if (value === undefined || value === null) return false;
-  
+
   const num = typeof value === 'string' ? parseFloat(value) : value;
   return !isNaN(num) && num > 0;
 };
@@ -30,7 +30,7 @@ export const isPositiveNumber = (value: string | number | undefined | null): boo
  */
 export const isNonNegativeNumber = (value: string | number | undefined | null): boolean => {
   if (value === undefined || value === null) return false;
-  
+
   const num = typeof value === 'string' ? parseFloat(value) : value;
   return !isNaN(num) && num >= 0;
 };
@@ -52,13 +52,11 @@ export const isValidDateFormat = (dateString: string): boolean => {
  */
 export const isValidDate = (dateString: string): boolean => {
   if (!isValidDateFormat(dateString)) return false;
-  
+
   const [day, month, year] = dateString.split('/').map(Number);
   const date = new Date(year, month - 1, day);
-  
-  return date.getDate() === day && 
-         date.getMonth() === month - 1 && 
-         date.getFullYear() === year;
+
+  return date.getDate() === day && date.getMonth() === month - 1 && date.getFullYear() === year;
 };
 
 /**
@@ -68,17 +66,17 @@ export const isValidDate = (dateString: string): boolean => {
  */
 export const isDateNotInPast = (dateString: string): boolean => {
   let date: Date;
-  
+
   if (dateString.includes('/')) {
     const [day, month, year] = dateString.split('/').map(Number);
     date = new Date(year, month - 1, day);
   } else {
     date = new Date(dateString);
   }
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   return date >= today;
 };
 
@@ -148,34 +146,34 @@ export const validateExpenseForm = (expense: {
   allocations?: { percentage: number }[];
 }): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
+
   if (!isNotEmpty(expense.description)) {
     errors.push('Informe a descrição do lançamento');
   }
-  
+
   if (!expense.isShared && !isNotEmpty(expense.operationId)) {
     errors.push('Selecione uma operação');
   }
-  
+
   if (!isPositiveNumber(expense.agreedValue)) {
     errors.push('Informe um valor válido');
   }
-  
+
   if (!isNotEmpty(expense.dueDate)) {
     errors.push('Informe a data de vencimento');
   }
-  
+
   if (expense.isShared && expense.allocations) {
     if (expense.allocations.length < 2) {
       errors.push('Selecione pelo menos 2 operações para ratear');
     }
-    
-    const percentages = expense.allocations.map(a => a.percentage);
+
+    const percentages = expense.allocations.map((a) => a.percentage);
     if (!isValidPercentageDistribution(percentages)) {
       errors.push('A soma dos percentuais deve ser 100%');
     }
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -192,15 +190,15 @@ export const validateOperationForm = (operation: {
   sectorId?: string;
 }): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
+
   if (!isNotEmpty(operation.name)) {
     errors.push('Informe o nome da operação');
   }
-  
+
   if (!isNotEmpty(operation.sectorId)) {
     errors.push('Selecione um setor');
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -216,11 +214,11 @@ export const validateSectorForm = (sector: {
   name?: string;
 }): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
+
   if (!isNotEmpty(sector.name)) {
     errors.push('Informe o nome do setor');
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,

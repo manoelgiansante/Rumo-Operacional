@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Linking,
-  Platform,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CrossAppService } from '@/lib/crossApp';
@@ -19,17 +12,16 @@ interface SubscriptionBannerProps {
   compact?: boolean;
 }
 
-export function SubscriptionBanner({ 
-  email, 
-  hasBonus = false, 
+export function SubscriptionBanner({
+  email,
+  hasBonus = false,
   isPremium = false,
-  onSubscribe, 
-  compact = false 
+  onSubscribe,
+  compact = false,
 }: SubscriptionBannerProps) {
-  
   const openRumoFinance = async () => {
     const deepLink = CrossAppService.getDeepLink('finance');
-    
+
     try {
       const canOpen = await Linking.canOpenURL(deepLink);
       if (canOpen) {
@@ -64,10 +56,7 @@ export function SubscriptionBanner({
                 Acesso completo incluso na sua assinatura!
               </Text>
             </View>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={openRumoFinance}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={openRumoFinance}>
               <Ionicons name="apps" size={16} color="#f59e0b" />
             </TouchableOpacity>
           </View>
@@ -118,22 +107,17 @@ export function SubscriptionBanner({
             <Ionicons name="rocket" size={compact ? 24 : 32} color="#fff" />
           </View>
           <View style={styles.textContainer}>
-            <Text style={[styles.title, compact && styles.titleCompact]}>
-              Upgrade para Premium
-            </Text>
+            <Text style={[styles.title, compact && styles.titleCompact]}>Upgrade para Premium</Text>
             <Text style={[styles.subtitle, compact && styles.subtitleCompact]}>
               Desbloqueie recursos avançados
             </Text>
           </View>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={onSubscribe}
-          >
+          <TouchableOpacity style={styles.actionButton} onPress={onSubscribe}>
             <Text style={styles.actionButtonText}>R$ 49,90</Text>
             <Ionicons name="arrow-forward" size={16} color="#6366f1" />
           </TouchableOpacity>
         </View>
-        
+
         {!compact && (
           <View style={styles.benefitsContainer}>
             <Text style={styles.tipText}>
@@ -156,7 +140,7 @@ export function PremiumBadge({ hasBonus }: { hasBonus?: boolean }) {
       </View>
     );
   }
-  
+
   return (
     <View style={styles.badge}>
       <Ionicons name="diamond" size={12} color="#10b981" />

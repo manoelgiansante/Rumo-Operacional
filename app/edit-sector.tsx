@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -7,17 +15,24 @@ import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 
 const COLORS = [
-  '#2E7D32', '#1565C0', '#7B1FA2', '#C62828', '#F57F17', '#00838F', '#4527A0', '#AD1457'
+  '#2E7D32',
+  '#1565C0',
+  '#7B1FA2',
+  '#C62828',
+  '#F57F17',
+  '#00838F',
+  '#4527A0',
+  '#AD1457',
 ];
 
 export default function EditSectorScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { sectors, updateSector } = useApp();
-  
+
   const sectorId = params.id as string;
-  const sector = sectors.find(s => s.id === sectorId);
-  
+  const sector = sectors.find((s) => s.id === sectorId);
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
@@ -54,10 +69,7 @@ export default function EditSectorScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => router.back()}
-          >
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <ArrowLeft size={22} color={colors.text} strokeWidth={1.5} />
           </TouchableOpacity>
           <Text style={styles.title}>Setor não encontrado</Text>
@@ -70,10 +82,7 @@ export default function EditSectorScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={22} color={colors.text} strokeWidth={1.5} />
         </TouchableOpacity>
         <Text style={styles.title}>Editar Setor</Text>
@@ -136,10 +145,7 @@ export default function EditSectorScreen() {
           </View>
         </View>
 
-        <TouchableOpacity 
-          style={styles.saveButton}
-          onPress={handleSave}
-        >
+        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>Salvar Alterações</Text>
         </TouchableOpacity>
 

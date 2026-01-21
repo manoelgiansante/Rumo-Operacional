@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Lock, Crown } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import React from "react";
+import React from 'react';
 
 interface LockedFeatureProps {
   title: string;
@@ -15,7 +15,7 @@ export function LockedFeature({ title, description, compact = false }: LockedFea
 
   if (compact) {
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.compactContainer}
         onPress={() => router.push('/subscription')}
       >
@@ -35,10 +35,7 @@ export function LockedFeature({ title, description, compact = false }: LockedFea
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
-      <TouchableOpacity 
-        style={styles.upgradeButton}
-        onPress={() => router.push('/subscription')}
-      >
+      <TouchableOpacity style={styles.upgradeButton} onPress={() => router.push('/subscription')}>
         <Crown size={16} color={colors.textLight} />
         <Text style={styles.upgradeText}>Fazer Upgrade</Text>
       </TouchableOpacity>
@@ -46,8 +43,13 @@ export function LockedFeature({ title, description, compact = false }: LockedFea
   );
 }
 
-export function LockedOverlay({ children, isLocked, title, description }: { 
-  children: React.ReactNode; 
+export function LockedOverlay({
+  children,
+  isLocked,
+  title,
+  description,
+}: {
+  children: React.ReactNode;
   isLocked: boolean;
   title: string;
   description: string;
@@ -60,9 +62,7 @@ export function LockedOverlay({ children, isLocked, title, description }: {
 
   return (
     <View style={styles.overlayContainer}>
-      <View style={styles.blurredContent}>
-        {children}
-      </View>
+      <View style={styles.blurredContent}>{children}</View>
       <View style={styles.overlay}>
         <View style={styles.overlayContent}>
           <View style={styles.overlayIcon}>
@@ -70,7 +70,7 @@ export function LockedOverlay({ children, isLocked, title, description }: {
           </View>
           <Text style={styles.overlayTitle}>{title}</Text>
           <Text style={styles.overlayDescription}>{description}</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.overlayButton}
             onPress={() => router.push('/subscription')}
           >

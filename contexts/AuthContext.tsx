@@ -68,19 +68,15 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   // =====================================================
   const loadUserProfile = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
       if (data) {
         setProfile(data);
         return data;
       }
       return null;
-    } catch (error) {
-      console.log('[Auth] Error loading profile:', error);
+    } catch {
+      console.log('[Auth] Error loading profile');
       return null;
     }
   }, []);
@@ -94,14 +90,14 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       // Buscar por email do usuário
       const { data: userData } = await supabase.auth.getUser();
       const userEmail = userData?.user?.email;
-      
+
       if (!userEmail) {
         setIsLoadingSubscription(false);
         return null;
       }
 
       // Usar tabela user_subscriptions existente
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('user_subscriptions')
         .select('*')
         .eq('email', userEmail)
@@ -111,18 +107,21 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         // Converter para formato interno
         const plan = data.custo_operacional_plan || data.gestao_rural_plan || 'free';
         const isExpired = data.expires_at && new Date(data.expires_at) < new Date();
-        
+
         const subscription: Subscription = {
           id: data.id,
           user_id: userId,
           email: data.email,
           plan: (plan as SubscriptionPlan) || 'free',
-          status: isExpired ? 'expired' : (plan === 'free' ? 'trial' : 'active'),
+          status: isExpired ? 'expired' : plan === 'free' ? 'trial' : 'active',
           starts_at: data.created_at,
           expires_at: data.expires_at,
           created_at: data.created_at,
           apps_included: ['operacional', 'finance', 'maquinas'],
-          features: plan !== 'free' ? ['unlimited_entries', 'advanced_reports', 'pdf_export'] : ['basic_reports'],
+          features:
+            plan !== 'free'
+              ? ['unlimited_entries', 'advanced_reports', 'pdf_export']
+              : ['basic_reports'],
           gestao_rural_plan: data.gestao_rural_plan,
           custo_operacional_plan: data.custo_operacional_plan,
           custo_op_bonus: data.custo_op_bonus,
@@ -168,7 +167,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         setIsLoadingSubscription(false);
         return subscription;
       }
-      
+
       setIsLoadingSubscription(false);
       return null;
     } catch (error) {
@@ -183,13 +182,15 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   // =====================================================
   useEffect(() => {
     console.log('[Auth] Initializing integrated auth...');
-    
+
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         // AUTO-INTEGRAÇÃO: Login = acesso automático a tudo
         if (session?.user) {
           await loadUserProfile(session.user.id);
@@ -205,12 +206,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     initAuth();
 
     let authSub: { unsubscribe: () => void } | null = null;
-    
+
     try {
       const authListener = supabase.auth.onAuthStateChange(async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         // Auto-carregar tudo quando logar
         if (session?.user) {
           await loadUserProfile(session.user.id);
@@ -226,29 +227,40 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('[Auth] Listener error:', error);
     }
 
-    return () => { authSub?.unsubscribe(); };
+    return () => {
+      authSub?.unsubscribe();
+    };
   }, [loadUserProfile, loadSubscription]);
 
   // =====================================================
   // VERIFICAÇÕES DE ACESSO
   // =====================================================
-  const hasAccessToApp = useCallback((appName: string): boolean => {
-    if (!subscription) return false;
-    const isPaid = subscription.plan === 'professional' || subscription.plan === 'enterprise' || subscription.plan === 'starter';
-    if (isPaid) {
-      return subscription.status === 'active' || subscription.status === 'trial';
-    }
-    // Trial tem acesso a todos os apps
-    if (subscription.status === 'trial') return true;
-    return subscription.apps_included?.includes(appName) ?? false;
-  }, [subscription]);
+  const hasAccessToApp = useCallback(
+    (appName: string): boolean => {
+      if (!subscription) return false;
+      const isPaid =
+        subscription.plan === 'professional' ||
+        subscription.plan === 'enterprise' ||
+        subscription.plan === 'starter';
+      if (isPaid) {
+        return subscription.status === 'active' || subscription.status === 'trial';
+      }
+      // Trial tem acesso a todos os apps
+      if (subscription.status === 'trial') return true;
+      return subscription.apps_included?.includes(appName) ?? false;
+    },
+    [subscription]
+  );
 
-  const hasFeature = useCallback((featureName: string): boolean => {
-    if (!subscription) return false;
-    const isPaid = subscription.plan === 'professional' || subscription.plan === 'enterprise';
-    if (isPaid) return subscription.status === 'active';
-    return subscription.features?.includes(featureName) ?? false;
-  }, [subscription]);
+  const hasFeature = useCallback(
+    (featureName: string): boolean => {
+      if (!subscription) return false;
+      const isPaid = subscription.plan === 'professional' || subscription.plan === 'enterprise';
+      if (isPaid) return subscription.status === 'active';
+      return subscription.features?.includes(featureName) ?? false;
+    },
+    [subscription]
+  );
 
   const needsPayment = useCallback((): boolean => {
     if (!subscription) return true;
@@ -267,38 +279,38 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   // =====================================================
   // UPGRADE APÓS PAGAMENTO
   // =====================================================
-  const upgradeSubscription = useCallback(async (plan: SubscriptionPlan): Promise<boolean> => {
-    if (!user || !subscription?.email) return false;
-    try {
-      const newExpiration = new Date();
-      newExpiration.setMonth(newExpiration.getMonth() + 1);
+  const upgradeSubscription = useCallback(
+    async (plan: SubscriptionPlan): Promise<boolean> => {
+      if (!user || !subscription?.email) return false;
+      try {
+        const newExpiration = new Date();
+        newExpiration.setMonth(newExpiration.getMonth() + 1);
 
-      // Atualizar na tabela user_subscriptions
-      const updates = {
-        custo_operacional_plan: plan,
-        gestao_rural_plan: plan,
-        expires_at: newExpiration.toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+        // Atualizar na tabela user_subscriptions
+        const updates = {
+          custo_operacional_plan: plan,
+          gestao_rural_plan: plan,
+          expires_at: newExpiration.toISOString(),
+          updated_at: new Date().toISOString(),
+        };
 
-      await supabase
-        .from('user_subscriptions')
-        .update(updates)
-        .eq('email', subscription.email);
+        await supabase.from('user_subscriptions').update(updates).eq('email', subscription.email);
 
-      await loadSubscription(user.id);
-      
-      // Sincronizar com outros bancos via SSO
-      if (user.email) {
-        ssoService.forceSyncAll(user.id, user.email);
+        await loadSubscription(user.id);
+
+        // Sincronizar com outros bancos via SSO
+        if (user.email) {
+          ssoService.forceSyncAll(user.id, user.email);
+        }
+
+        return true;
+      } catch (error) {
+        console.log('[Auth] Upgrade error:', error);
+        return false;
       }
-      
-      return true;
-    } catch (error) {
-      console.log('[Auth] Upgrade error:', error);
-      return false;
-    }
-  }, [user, subscription, loadSubscription]);
+    },
+    [user, subscription, loadSubscription]
+  );
 
   // =====================================================
   // AUTH ACTIONS - INTEGRADO COM SSO
@@ -333,26 +345,34 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     if (error) throw error;
   }, []);
 
-  const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
-    if (!user) return false;
-    try {
-      await supabase.from('profiles').update(updates).eq('id', user.id);
-      setProfile(prev => prev ? { ...prev, ...updates } : null);
-      // Sincronizar perfil com outros bancos
-      if (user.email) {
-        ssoService.forceSyncAll(user.id, user.email);
+  const updateProfile = useCallback(
+    async (updates: Partial<UserProfile>) => {
+      if (!user) return false;
+      try {
+        await supabase.from('profiles').update(updates).eq('id', user.id);
+        setProfile((prev) => (prev ? { ...prev, ...updates } : null));
+        // Sincronizar perfil com outros bancos
+        if (user.email) {
+          ssoService.forceSyncAll(user.id, user.email);
+        }
+        return true;
+      } catch {
+        return false;
       }
-      return true;
-    } catch { return false; }
-  }, [user]);
+    },
+    [user]
+  );
 
   // =====================================================
   // FUNÇÕES SSO ADICIONAIS
   // =====================================================
-  const checkAppAccess = useCallback(async (appName: 'operacional' | 'finance' | 'maquinas') => {
-    if (!user) return { hasAccess: false, reason: 'Não autenticado' };
-    return ssoService.checkAppAccess(user.id, appName);
-  }, [user]);
+  const checkAppAccess = useCallback(
+    async (appName: 'operacional' | 'finance' | 'maquinas') => {
+      if (!user) return { hasAccess: false, reason: 'Não autenticado' };
+      return ssoService.checkAppAccess(user.id, appName);
+    },
+    [user]
+  );
 
   const forceSyncSSO = useCallback(async () => {
     if (!user || !user.email) return { success: false, message: 'Não autenticado' };
@@ -368,19 +388,34 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   // =====================================================
   return {
     // Auth
-    session, user, isLoading, isAuthenticated: !!session,
+    session,
+    user,
+    isLoading,
+    isAuthenticated: !!session,
     // Perfil
-    profile, updateProfile,
+    profile,
+    updateProfile,
     // Assinatura integrada
-    subscription, isLoadingSubscription,
+    subscription,
+    isLoadingSubscription,
     isPremium: subscription?.plan === 'professional' || subscription?.plan === 'enterprise',
     isTrial: subscription?.status === 'trial',
     isActive: subscription?.status === 'active' || subscription?.status === 'trial',
     // Verificações
-    hasAccessToApp, hasFeature, needsPayment, trialDaysRemaining,
+    hasAccessToApp,
+    hasFeature,
+    needsPayment,
+    trialDaysRemaining,
     // Ações
-    signUp, signIn, signOut, resetPassword, upgradeSubscription, loadSubscription,
+    signUp,
+    signIn,
+    signOut,
+    resetPassword,
+    upgradeSubscription,
+    loadSubscription,
     // SSO - Sincronização entre apps
-    checkAppAccess, forceSyncSSO, getSyncStatus,
+    checkAppAccess,
+    forceSyncSSO,
+    getSyncStatus,
   };
 });

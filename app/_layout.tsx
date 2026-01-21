@@ -14,7 +14,10 @@ const queryClient = new QueryClient({
   },
 });
 
-class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+class ErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
   constructor(props: { children: ReactNode }) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -34,7 +37,9 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
       return (
         <View style={errorStyles.container}>
           <Text style={errorStyles.title}>Erro ao carregar</Text>
-          <Text style={errorStyles.message}>{this.state.error?.message || 'Erro desconhecido'}</Text>
+          <Text style={errorStyles.message}>
+            {this.state.error?.message || 'Erro desconhecido'}
+          </Text>
         </View>
       );
     }

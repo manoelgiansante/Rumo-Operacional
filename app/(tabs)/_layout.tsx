@@ -1,7 +1,24 @@
 import { Tabs, useRouter, usePathname } from 'expo-router';
-import { Home, FileText, CheckCircle, BarChart3, Settings, User, Menu, X } from 'lucide-react-native';
+import {
+  Home,
+  FileText,
+  CheckCircle,
+  BarChart3,
+  Settings,
+  User,
+  Menu,
+  X,
+} from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { Platform, View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
+import {
+  Platform,
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  useWindowDimensions,
+} from 'react-native';
 import { useState, useEffect } from 'react';
 
 // Breakpoint para considerar mobile (menos que 768px)
@@ -13,17 +30,17 @@ function WebLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
+
   // Detecta se é mobile baseado na largura da tela
   const isMobile = width < MOBILE_BREAKPOINT;
-  
+
   // Fecha sidebar quando navegar (no mobile)
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
     }
   }, [pathname, isMobile]);
-  
+
   const menuItems = [
     { icon: Home, label: 'Dashboard', route: '/' },
     { icon: FileText, label: 'Lançamentos', route: '/expenses' },
@@ -38,23 +55,17 @@ function WebLayout({ children }: { children: React.ReactNode }) {
       setSidebarOpen(false);
     }
   };
-  
+
   return (
     <View style={styles.webContainer}>
       {/* Overlay para fechar sidebar no mobile */}
       {isMobile && sidebarOpen && (
-        <Pressable 
-          style={styles.overlay} 
-          onPress={() => setSidebarOpen(false)}
-        />
+        <Pressable style={styles.overlay} onPress={() => setSidebarOpen(false)} />
       )}
-      
+
       {/* Sidebar - sempre visível no desktop, toggle no mobile */}
       {(!isMobile || sidebarOpen) && (
-        <View style={[
-          styles.sidebar,
-          isMobile && styles.sidebarMobile
-        ]}>
+        <View style={[styles.sidebar, isMobile && styles.sidebarMobile]}>
           {/* Header com botão de fechar no mobile */}
           <View style={styles.sidebarHeader}>
             {/* Logo */}
@@ -67,44 +78,49 @@ function WebLayout({ children }: { children: React.ReactNode }) {
                 <Text style={styles.logoSubtitle}>Operacional</Text>
               </View>
             </View>
-            
+
             {/* Botão fechar no mobile */}
             {isMobile && (
-              <Pressable 
-                style={styles.closeButton}
-                onPress={() => setSidebarOpen(false)}
-              >
+              <Pressable style={styles.closeButton} onPress={() => setSidebarOpen(false)}>
                 <X size={24} color={colors.text} strokeWidth={1.5} />
               </Pressable>
             )}
           </View>
-          
+
           {/* Menu */}
           <ScrollView style={styles.menuContainer} showsVerticalScrollIndicator={false}>
             {menuItems.map((item) => (
               <Pressable
                 key={item.route}
                 style={[
-                  styles.menuItem, 
-                  (pathname === item.route || (item.route === '/' && pathname === '/(tabs)')) && styles.menuItemActive
+                  styles.menuItem,
+                  (pathname === item.route || (item.route === '/' && pathname === '/(tabs)')) &&
+                    styles.menuItemActive,
                 ]}
                 onPress={() => handleMenuItemPress(item.route)}
               >
-                <item.icon 
-                  size={20} 
-                  color={(pathname === item.route || (item.route === '/' && pathname === '/(tabs)')) ? colors.primary : colors.textMuted} 
-                  strokeWidth={1.5} 
+                <item.icon
+                  size={20}
+                  color={
+                    pathname === item.route || (item.route === '/' && pathname === '/(tabs)')
+                      ? colors.primary
+                      : colors.textMuted
+                  }
+                  strokeWidth={1.5}
                 />
-                <Text style={[
-                  styles.menuLabel, 
-                  (pathname === item.route || (item.route === '/' && pathname === '/(tabs)')) && styles.menuLabelActive
-                ]}>
+                <Text
+                  style={[
+                    styles.menuLabel,
+                    (pathname === item.route || (item.route === '/' && pathname === '/(tabs)')) &&
+                      styles.menuLabelActive,
+                  ]}
+                >
                   {item.label}
                 </Text>
               </Pressable>
             ))}
           </ScrollView>
-          
+
           {/* User Section */}
           <View style={styles.userSection}>
             <View style={styles.userInfo}>
@@ -119,16 +135,13 @@ function WebLayout({ children }: { children: React.ReactNode }) {
           </View>
         </View>
       )}
-      
+
       {/* Main Content */}
       <View style={styles.mainContent}>
         {/* Header mobile com hamburger menu */}
         {isMobile && (
           <View style={styles.mobileHeader}>
-            <Pressable 
-              style={styles.hamburgerButton}
-              onPress={() => setSidebarOpen(true)}
-            >
+            <Pressable style={styles.hamburgerButton} onPress={() => setSidebarOpen(true)}>
               <Menu size={24} color={colors.text} strokeWidth={1.5} />
             </Pressable>
             <View style={styles.mobileLogoContainer}>
@@ -148,10 +161,10 @@ function WebLayout({ children }: { children: React.ReactNode }) {
 
 export default function TabLayout() {
   const { width } = useWindowDimensions();
-  
+
   // Detecta se é mobile baseado na largura da tela (< 768px)
   const isMobileWeb = Platform.OS === 'web' && width < MOBILE_BREAKPOINT;
-  
+
   // No mobile web, usar tabs na parte inferior igual ao app nativo
   if (isMobileWeb) {
     return (
@@ -213,7 +226,7 @@ export default function TabLayout() {
       </Tabs>
     );
   }
-  
+
   // Na web DESKTOP, usar layout com sidebar
   if (Platform.OS === 'web') {
     return (
@@ -233,7 +246,7 @@ export default function TabLayout() {
       </WebLayout>
     );
   }
-  
+
   // No mobile nativo, usar tabs padrão
   return (
     <Tabs
@@ -275,7 +288,9 @@ export default function TabLayout() {
         name="verification"
         options={{
           title: 'Verificação',
-          tabBarIcon: ({ color, size }) => <CheckCircle size={22} color={color} strokeWidth={1.5} />,
+          tabBarIcon: ({ color, size }) => (
+            <CheckCircle size={22} color={color} strokeWidth={1.5} />
+          ),
         }}
       />
       <Tabs.Screen

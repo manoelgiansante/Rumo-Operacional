@@ -49,18 +49,23 @@ export const CrossAppService = {
   /**
    * Cria ou atualiza assinatura unificada
    */
-  async upsertSubscription(subscription: Partial<CrossAppSubscription> & { email: string }): Promise<CrossAppSubscription | null> {
+  async upsertSubscription(
+    subscription: Partial<CrossAppSubscription> & { email: string }
+  ): Promise<CrossAppSubscription | null> {
     try {
       const { data, error } = await supabase
         .from('user_subscriptions')
-        .upsert({
-          email: subscription.email,
-          gestao_rural_plan: subscription.rumoFinancePlan || 'free',
-          custo_operacional_plan: subscription.rumoOperacionalPlan || 'free',
-          expires_at: subscription.expiresAt,
-        }, {
-          onConflict: 'email',
-        })
+        .upsert(
+          {
+            email: subscription.email,
+            gestao_rural_plan: subscription.rumoFinancePlan || 'free',
+            custo_operacional_plan: subscription.rumoOperacionalPlan || 'free',
+            expires_at: subscription.expiresAt,
+          },
+          {
+            onConflict: 'email',
+          }
+        )
         .select()
         .single();
 
@@ -86,11 +91,13 @@ export const CrossAppService = {
   async hasOperacionalPremium(email: string): Promise<boolean> {
     const subscription = await this.getSubscriptionStatus(email);
     if (!subscription) return false;
-    
+
     // Tem bônus do Finance ou assinatura direta
-    return subscription.hasBonus || 
-           subscription.rumoOperacionalPlan === 'premium' ||
-           subscription.rumoOperacionalPlan === 'intermediate';
+    return (
+      subscription.hasBonus ||
+      subscription.rumoOperacionalPlan === 'premium' ||
+      subscription.rumoOperacionalPlan === 'intermediate'
+    );
   },
 
   /**
@@ -99,9 +106,10 @@ export const CrossAppService = {
   async hasFinancePremium(email: string): Promise<boolean> {
     const subscription = await this.getSubscriptionStatus(email);
     if (!subscription) return false;
-    
-    return subscription.rumoFinancePlan === 'premium' ||
-           subscription.rumoFinancePlan === 'intermediate';
+
+    return (
+      subscription.rumoFinancePlan === 'premium' || subscription.rumoFinancePlan === 'intermediate'
+    );
   },
 
   /**
@@ -114,7 +122,7 @@ export const CrossAppService = {
     // - Suppliers (Fornecedores)
     // - Clients (Clientes)
     // - Bank Accounts (Contas Bancárias)
-    
+
     const [farms, suppliers, clients, bankAccounts] = await Promise.all([
       supabase.from('farms').select('*').eq('active', true),
       supabase.from('suppliers').select('*').eq('active', true),
@@ -139,21 +147,15 @@ export const CrossAppService = {
         .from('expenses')
         .select('actual_value, agreed_value, status')
         .in('status', ['pending', 'verified', 'paid']),
-      supabase
-        .from('revenues')
-        .select('value, status')
-        .in('status', ['pending', 'received']),
+      supabase.from('revenues').select('value, status').in('status', ['pending', 'received']),
     ]);
 
     const totalExpenses = (expenses.data || []).reduce(
-      (sum, e) => sum + (e.actual_value || e.agreed_value || 0), 
+      (sum, e) => sum + (e.actual_value || e.agreed_value || 0),
       0
     );
-    
-    const totalRevenues = (revenues.data || []).reduce(
-      (sum, r) => sum + (r.value || 0), 
-      0
-    );
+
+    const totalRevenues = (revenues.data || []).reduce((sum, r) => sum + (r.value || 0), 0);
 
     return {
       totalExpenses,
@@ -172,7 +174,7 @@ export const CrossAppService = {
       finance: 'rumo-finance',
       operacional: 'rumo-operacional',
     };
-    
+
     const base = `${schemes[app]}://`;
     return path ? `${base}${path}` : base;
   },

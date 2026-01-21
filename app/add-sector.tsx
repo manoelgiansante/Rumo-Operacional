@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -7,15 +15,27 @@ import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 
 const SECTOR_COLORS = [
-  '#8B4513', '#228B22', '#6B4423', '#4A90A4', '#9C27B0',
-  '#E91E63', '#FF9800', '#795548', '#607D8B', '#3F51B5',
-  '#00BCD4', '#4CAF50', '#FFC107', '#9E9E9E', '#673AB7',
+  '#8B4513',
+  '#228B22',
+  '#6B4423',
+  '#4A90A4',
+  '#9C27B0',
+  '#E91E63',
+  '#FF9800',
+  '#795548',
+  '#607D8B',
+  '#3F51B5',
+  '#00BCD4',
+  '#4CAF50',
+  '#FFC107',
+  '#9E9E9E',
+  '#673AB7',
 ];
 
 export default function AddSectorScreen() {
   const router = useRouter();
   const { addSector } = useApp();
-  
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(SECTOR_COLORS[0]);
@@ -96,9 +116,7 @@ export default function AddSectorScreen() {
                 ]}
                 onPress={() => setSelectedColor(color)}
               >
-                {selectedColor === color && (
-                  <Check size={18} color="#fff" />
-                )}
+                {selectedColor === color && <Check size={18} color="#fff" />}
               </TouchableOpacity>
             ))}
           </View>

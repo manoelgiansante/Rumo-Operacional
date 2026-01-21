@@ -29,7 +29,7 @@ export default function LoginScreen() {
 
   const handleSubmit = async () => {
     setError('');
-    
+
     if (!email || !password) {
       setError('Preencha todos os campos');
       return;
@@ -52,11 +52,9 @@ export default function LoginScreen() {
         router.back();
       } else {
         await signUp(email, password);
-        Alert.alert(
-          'Conta criada!',
-          'Verifique seu email para confirmar sua conta.',
-          [{ text: 'OK', onPress: () => setIsLogin(true) }]
-        );
+        Alert.alert('Conta criada!', 'Verifique seu email para confirmar sua conta.', [
+          { text: 'OK', onPress: () => setIsLogin(true) },
+        ]);
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao processar solicitação';
@@ -75,10 +73,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await resetPassword(email);
-      Alert.alert(
-        'Email enviado',
-        'Verifique sua caixa de entrada para redefinir sua senha.'
-      );
+      Alert.alert('Email enviado', 'Verifique sua caixa de entrada para redefinir sua senha.');
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao enviar email';
       setError(errorMessage);
@@ -97,10 +92,7 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => router.back()}
-          >
+          <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
             <X size={24} color={colors.text} />
           </TouchableOpacity>
 
@@ -110,9 +102,7 @@ export default function LoginScreen() {
             </View>
             <Text style={styles.title}>Rumo</Text>
             <Text style={styles.titleSecondary}>Operacional</Text>
-            <Text style={styles.subtitle}>
-              {isLogin ? 'Entre na sua conta' : 'Crie sua conta'}
-            </Text>
+            <Text style={styles.subtitle}>{isLogin ? 'Entre na sua conta' : 'Crie sua conta'}</Text>
           </View>
 
           {error ? (
@@ -173,10 +163,7 @@ export default function LoginScreen() {
             )}
 
             {isLogin && (
-              <TouchableOpacity
-                onPress={handleForgotPassword}
-                style={styles.forgotButton}
-              >
+              <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotButton}>
                 <Text style={styles.forgotText}>Esqueceu a senha?</Text>
               </TouchableOpacity>
             )}
@@ -190,9 +177,7 @@ export default function LoginScreen() {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <View style={styles.submitButtonContent}>
-                  <Text style={styles.submitButtonText}>
-                    {isLogin ? 'Entrar' : 'Criar conta'}
-                  </Text>
+                  <Text style={styles.submitButtonText}>{isLogin ? 'Entrar' : 'Criar conta'}</Text>
                   <ArrowRight size={20} color="#fff" />
                 </View>
               )}
@@ -202,13 +187,13 @@ export default function LoginScreen() {
               <Text style={styles.switchText}>
                 {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
               </Text>
-              <TouchableOpacity onPress={() => {
-                setIsLogin(!isLogin);
-                setError('');
-              }}>
-                <Text style={styles.switchButton}>
-                  {isLogin ? 'Criar conta' : 'Entrar'}
-                </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setIsLogin(!isLogin);
+                  setError('');
+                }}
+              >
+                <Text style={styles.switchButton}>{isLogin ? 'Criar conta' : 'Entrar'}</Text>
               </TouchableOpacity>
             </View>
           </View>

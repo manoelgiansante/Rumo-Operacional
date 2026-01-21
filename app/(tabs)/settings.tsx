@@ -1,9 +1,18 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  TextInput,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { 
+import {
   ChevronRight,
   Bell,
   Shield,
@@ -16,12 +25,11 @@ import {
   Mail,
   Edit3,
   Cloud,
-  CloudOff,
   Lock,
   Eye,
   EyeOff,
   Leaf,
-  BookOpen
+  BookOpen,
 } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
@@ -35,7 +43,7 @@ export default function SettingsScreen() {
   const { operations, deleteOperation, sectors, deleteSector } = useApp();
   const { signOut, isAuthenticated, user, signIn, signUp } = useAuth();
   const [notifications, setNotifications] = useState(true);
-  
+
   // Estados para login inline
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,7 +60,7 @@ export default function SettingsScreen() {
     try {
       await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
       setShowTutorial(false);
-    } catch (error) {
+    } catch {
       setShowTutorial(false);
     }
   };
@@ -84,10 +92,10 @@ export default function SettingsScreen() {
       `Deseja excluir "${name}"? Os lançamentos associados permanecerão no sistema.`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Excluir', 
+        {
+          text: 'Excluir',
           style: 'destructive',
-          onPress: () => deleteOperation(id)
+          onPress: () => deleteOperation(id),
         },
       ]
     );
@@ -99,10 +107,10 @@ export default function SettingsScreen() {
       `Deseja excluir "${name}"? As operações e lançamentos associados permanecerão no sistema.`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Excluir', 
+        {
+          text: 'Excluir',
           style: 'destructive',
-          onPress: () => deleteSector(id)
+          onPress: () => deleteSector(id),
         },
       ]
     );
@@ -110,9 +118,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {showTutorial && (
-        <OnboardingTutorial onComplete={handleTutorialComplete} />
-      )}
+      {showTutorial && <OnboardingTutorial onComplete={handleTutorialComplete} />}
       <View style={styles.header}>
         <Text style={styles.title}>Configurações</Text>
       </View>
@@ -132,17 +138,21 @@ export default function SettingsScreen() {
 
             <View style={styles.authCard}>
               <View style={styles.authTabs}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.authTab, isLogin && styles.authTabActive]}
                   onPress={() => setIsLogin(true)}
                 >
-                  <Text style={[styles.authTabText, isLogin && styles.authTabTextActive]}>Entrar</Text>
+                  <Text style={[styles.authTabText, isLogin && styles.authTabTextActive]}>
+                    Entrar
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.authTab, !isLogin && styles.authTabActive]}
                   onPress={() => setIsLogin(false)}
                 >
-                  <Text style={[styles.authTabText, !isLogin && styles.authTabTextActive]}>Criar Conta</Text>
+                  <Text style={[styles.authTabText, !isLogin && styles.authTabTextActive]}>
+                    Criar Conta
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -179,13 +189,13 @@ export default function SettingsScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.authSubmitButton, isLoading && styles.authSubmitButtonDisabled]}
                   onPress={handleAuth}
                   disabled={isLoading}
                 >
                   <Text style={styles.authSubmitButtonText}>
-                    {isLoading ? 'Aguarde...' : (isLogin ? 'Entrar' : 'Criar Conta')}
+                    {isLoading ? 'Aguarde...' : isLogin ? 'Entrar' : 'Criar Conta'}
                   </Text>
                 </TouchableOpacity>
 
@@ -230,28 +240,24 @@ export default function SettingsScreen() {
                   </View>
                 </View>
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.accountButton}
                 onPress={() => {
-                  Alert.alert(
-                    'Sair da Conta',
-                    'Seus dados locais serão mantidos. Deseja sair?',
-                    [
-                      { text: 'Cancelar', style: 'cancel' },
-                      { 
-                        text: 'Sair', 
-                        style: 'destructive',
-                        onPress: async () => {
-                          try {
-                            await signOut();
-                          } catch (error) {
-                            Alert.alert('Erro', 'Não foi possível sair da conta');
-                          }
+                  Alert.alert('Sair da Conta', 'Seus dados locais serão mantidos. Deseja sair?', [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Sair',
+                      style: 'destructive',
+                      onPress: async () => {
+                        try {
+                          await signOut();
+                        } catch {
+                          Alert.alert('Erro', 'Não foi possível sair da conta');
                         }
                       },
-                    ]
-                  );
+                    },
+                  ]);
                 }}
               >
                 <LogOut size={16} color={colors.error} strokeWidth={1.5} />
@@ -282,13 +288,13 @@ export default function SettingsScreen() {
                   <Text style={styles.operationName}>{sector.name}</Text>
                   <Text style={styles.operationDescription}>{sector.description}</Text>
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => router.push(`/edit-sector?id=${sector.id}` as any)}
                 >
                   <Edit3 size={16} color={colors.textMuted} strokeWidth={1.5} />
                 </TouchableOpacity>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => handleDeleteSector(sector.id, sector.name)}
                 >
@@ -320,13 +326,13 @@ export default function SettingsScreen() {
                   <Text style={styles.operationName}>{operation.name}</Text>
                   <Text style={styles.operationDescription}>{operation.description}</Text>
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.editButton}
                   onPress={() => router.push(`/edit-operation?id=${operation.id}` as any)}
                 >
                   <Edit3 size={16} color={colors.textMuted} strokeWidth={1.5} />
                 </TouchableOpacity>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => handleDeleteOperation(operation.id, operation.name)}
                 >
@@ -340,7 +346,7 @@ export default function SettingsScreen() {
         {/* Preferências */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferências</Text>
-          
+
           <View style={styles.settingItem}>
             <View style={styles.settingIcon}>
               <Bell size={18} color={colors.primary} strokeWidth={1.5} />
@@ -358,8 +364,8 @@ export default function SettingsScreen() {
         {/* Assinatura */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Assinatura</Text>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.subscriptionCard}
             onPress={() => router.push('/subscription')}
           >
@@ -368,9 +374,7 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.subscriptionInfo}>
               <Text style={styles.subscriptionTitle}>Plano Premium</Text>
-              <Text style={styles.subscriptionText}>
-                Todas as funcionalidades liberadas
-              </Text>
+              <Text style={styles.subscriptionText}>Todas as funcionalidades liberadas</Text>
             </View>
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
           </TouchableOpacity>
@@ -388,13 +392,15 @@ export default function SettingsScreen() {
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => Alert.alert(
-              'Central de Ajuda',
-              'Em breve você terá acesso a tutoriais, FAQs e suporte direto.\n\nPor enquanto, use o botão "Ver Tutorial" acima para aprender a usar o app.',
-              [{ text: 'Entendi', style: 'default' }]
-            )}
+            onPress={() =>
+              Alert.alert(
+                'Central de Ajuda',
+                'Em breve você terá acesso a tutoriais, FAQs e suporte direto.\n\nPor enquanto, use o botão "Ver Tutorial" acima para aprender a usar o app.',
+                [{ text: 'Entendi', style: 'default' }]
+              )
+            }
           >
             <View style={styles.menuIcon}>
               <HelpCircle size={18} color={colors.textSecondary} strokeWidth={1.5} />
@@ -403,13 +409,15 @@ export default function SettingsScreen() {
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => Alert.alert(
-              'Política de Privacidade',
-              'Seus dados são armazenados de forma segura e criptografada.\n\n• Não compartilhamos seus dados com terceiros\n• Você pode exportar ou excluir seus dados a qualquer momento\n• Utilizamos criptografia de ponta a ponta\n\nPolítica completa em breve.',
-              [{ text: 'Entendi', style: 'default' }]
-            )}
+            onPress={() =>
+              Alert.alert(
+                'Política de Privacidade',
+                'Seus dados são armazenados de forma segura e criptografada.\n\n• Não compartilhamos seus dados com terceiros\n• Você pode exportar ou excluir seus dados a qualquer momento\n• Utilizamos criptografia de ponta a ponta\n\nPolítica completa em breve.',
+                [{ text: 'Entendi', style: 'default' }]
+              )
+            }
           >
             <View style={styles.menuIcon}>
               <Shield size={18} color={colors.textSecondary} strokeWidth={1.5} />

@@ -135,7 +135,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'premium',
     name: 'Premium',
-    price: 49.90,
+    price: 49.9,
     features: [
       'Operações ilimitadas',
       'Setores ilimitados',
@@ -151,4 +151,3 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     isPopular: true,
   },
 ];
-

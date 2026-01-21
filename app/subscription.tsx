@@ -1,23 +1,34 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { X, Check, Star, Zap, Shield, Infinity, RefreshCw, Crown, Link2 } from 'lucide-react-native';
+import {
+  X,
+  Check,
+  Star,
+  Zap,
+  Shield,
+  Infinity,
+  RefreshCw,
+  Crown,
+  Link2,
+} from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function SubscriptionScreen() {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { 
-    isAuthenticated, 
-    subscription, 
-    isPremium, 
-    isTrial, 
-    trialDaysRemaining,
-    upgradeSubscription,
-    needsPayment 
-  } = useAuth();
+  const { isAuthenticated, isPremium, trialDaysRemaining, upgradeSubscription, needsPayment } =
+    useAuth();
 
   const daysLeft = trialDaysRemaining();
   const showPaymentRequired = needsPayment();
@@ -29,7 +40,7 @@ export default function SubscriptionScreen() {
         'Faça login para assinar o plano Premium e ter acesso a todos os apps Rumo.',
         [
           { text: 'Cancelar', style: 'cancel' },
-          { text: 'Login', onPress: () => router.push('/login') }
+          { text: 'Login', onPress: () => router.push('/login') },
         ]
       );
       return;
@@ -45,13 +56,13 @@ export default function SubscriptionScreen() {
         'Escolha a forma de pagamento:\n\n• PIX: R$ 49,90\n• Cartão: R$ 49,90/mês',
         [
           { text: 'Cancelar', style: 'cancel', onPress: () => setIsProcessing(false) },
-          { 
-            text: 'Pagar com PIX', 
+          {
+            text: 'Pagar com PIX',
             onPress: async () => {
               // Simular pagamento aprovado
               const success = await upgradeSubscription('premium');
               setIsProcessing(false);
-              
+
               if (success) {
                 Alert.alert(
                   '🎉 Parabéns!',
@@ -61,7 +72,7 @@ export default function SubscriptionScreen() {
               } else {
                 Alert.alert('Erro', 'Falha ao processar pagamento. Tente novamente.');
               }
-            }
+            },
           },
         ]
       );
@@ -81,16 +92,21 @@ export default function SubscriptionScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Status atual */}
         {isAuthenticated && (
-          <View style={[
-            styles.statusBanner,
-            isPremium ? styles.statusPremium : 
-            showPaymentRequired ? styles.statusExpired : styles.statusTrial
-          ]}>
+          <View
+            style={[
+              styles.statusBanner,
+              isPremium
+                ? styles.statusPremium
+                : showPaymentRequired
+                  ? styles.statusExpired
+                  : styles.statusTrial,
+            ]}
+          >
             <Crown size={20} color={colors.textLight} />
             <Text style={styles.statusText}>
-              {isPremium 
-                ? '✨ Você é Premium!' 
-                : showPaymentRequired 
+              {isPremium
+                ? '✨ Você é Premium!'
+                : showPaymentRequired
                   ? '⚠️ Assinatura expirada'
                   : `🕐 Trial: ${daysLeft} dias restantes`}
             </Text>
@@ -102,9 +118,7 @@ export default function SubscriptionScreen() {
             <Zap size={32} color={colors.accent} />
           </View>
           <Text style={styles.heroTitle}>Rumo Premium</Text>
-          <Text style={styles.heroSubtitle}>
-            Uma assinatura, todos os apps integrados
-          </Text>
+          <Text style={styles.heroSubtitle}>Uma assinatura, todos os apps integrados</Text>
         </View>
 
         {/* Card do Plano Único */}
@@ -162,11 +176,11 @@ export default function SubscriptionScreen() {
             ))}
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.planButton, 
+              styles.planButton,
               styles.planButtonPopular,
-              (isPremium || isProcessing) && styles.planButtonDisabled
+              (isPremium || isProcessing) && styles.planButtonDisabled,
             ]}
             onPress={handleSubscribe}
             disabled={isPremium || isProcessing}
@@ -184,7 +198,7 @@ export default function SubscriptionScreen() {
         {/* Benefícios */}
         <View style={styles.benefitsSection}>
           <Text style={styles.benefitsTitle}>Por que escolher o Premium?</Text>
-          
+
           <View style={styles.benefitCard}>
             <View style={styles.benefitIcon}>
               <Infinity size={20} color={colors.primary} strokeWidth={1.5} />
@@ -196,7 +210,7 @@ export default function SubscriptionScreen() {
               </Text>
             </View>
           </View>
-          
+
           <View style={styles.benefitCard}>
             <View style={styles.benefitIcon}>
               <Link2 size={20} color={colors.primary} strokeWidth={1.5} />
@@ -208,7 +222,7 @@ export default function SubscriptionScreen() {
               </Text>
             </View>
           </View>
-          
+
           <View style={styles.benefitCard}>
             <View style={styles.benefitIcon}>
               <RefreshCw size={20} color={colors.primary} strokeWidth={1.5} />
@@ -220,7 +234,7 @@ export default function SubscriptionScreen() {
               </Text>
             </View>
           </View>
-          
+
           <View style={styles.benefitCard}>
             <View style={styles.benefitIcon}>
               <Shield size={20} color={colors.primary} strokeWidth={1.5} />
@@ -236,11 +250,12 @@ export default function SubscriptionScreen() {
 
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>Dúvidas frequentes</Text>
-          
+
           <View style={styles.faqItem}>
             <Text style={styles.faqQuestion}>A assinatura vale para todos os apps?</Text>
             <Text style={styles.faqAnswer}>
-              Sim! Com uma única assinatura de R$49,90/mês você tem acesso completo ao Rumo Operacional, Rumo Finance e Rumo Máquinas.
+              Sim! Com uma única assinatura de R$49,90/mês você tem acesso completo ao Rumo
+              Operacional, Rumo Finance e Rumo Máquinas.
             </Text>
           </View>
 
@@ -254,7 +269,8 @@ export default function SubscriptionScreen() {
           <View style={styles.faqItem}>
             <Text style={styles.faqQuestion}>Como funciona o período de teste?</Text>
             <Text style={styles.faqAnswer}>
-              Oferecemos 7 dias de teste gratuito com acesso a todos os recursos. Você pode testar tudo antes de decidir.
+              Oferecemos 7 dias de teste gratuito com acesso a todos os recursos. Você pode testar
+              tudo antes de decidir.
             </Text>
           </View>
         </View>

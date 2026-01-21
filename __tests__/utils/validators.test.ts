@@ -292,10 +292,7 @@ describe('Validators', () => {
         agreedValue: 100,
         dueDate: '15/01/2024',
         isShared: true,
-        allocations: [
-          { percentage: 60 },
-          { percentage: 40 },
-        ],
+        allocations: [{ percentage: 60 }, { percentage: 40 }],
       });
       expect(result.isValid).toBe(true);
     });
@@ -318,10 +315,7 @@ describe('Validators', () => {
         agreedValue: 100,
         dueDate: '15/01/2024',
         isShared: true,
-        allocations: [
-          { percentage: 50 },
-          { percentage: 30 },
-        ],
+        allocations: [{ percentage: 50 }, { percentage: 30 }],
       });
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('A soma dos percentuais deve ser 100%');
@@ -345,10 +339,7 @@ describe('Validators', () => {
         agreedValue: 100,
         dueDate: '15/01/2024',
         isShared: true,
-        allocations: [
-          { percentage: 50 },
-          { percentage: 50 },
-        ],
+        allocations: [{ percentage: 50 }, { percentage: 50 }],
       });
       expect(result.isValid).toBe(true);
     });

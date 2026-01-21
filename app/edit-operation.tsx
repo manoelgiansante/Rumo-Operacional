@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -7,17 +15,24 @@ import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 
 const COLORS = [
-  '#2E7D32', '#1565C0', '#7B1FA2', '#C62828', '#F57F17', '#00838F', '#4527A0', '#AD1457'
+  '#2E7D32',
+  '#1565C0',
+  '#7B1FA2',
+  '#C62828',
+  '#F57F17',
+  '#00838F',
+  '#4527A0',
+  '#AD1457',
 ];
 
 export default function EditOperationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { operations, sectors, updateOperation } = useApp();
-  
+
   const operationId = params.id as string;
-  const operation = operations.find(o => o.id === operationId);
-  
+  const operation = operations.find((o) => o.id === operationId);
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
@@ -33,7 +48,7 @@ export default function EditOperationScreen() {
     }
   }, [operation]);
 
-  const selectedSector = sectors.find(s => s.id === selectedSectorId);
+  const selectedSector = sectors.find((s) => s.id === selectedSectorId);
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -60,10 +75,7 @@ export default function EditOperationScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => router.back()}
-          >
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <ArrowLeft size={22} color={colors.text} strokeWidth={1.5} />
           </TouchableOpacity>
           <Text style={styles.title}>Operação não encontrada</Text>
@@ -76,10 +88,7 @@ export default function EditOperationScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={22} color={colors.text} strokeWidth={1.5} />
         </TouchableOpacity>
         <Text style={styles.title}>Editar Operação</Text>
@@ -115,7 +124,7 @@ export default function EditOperationScreen() {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Setor (opcional)</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.pickerButton}
               onPress={() => setShowSectorPicker(!showSectorPicker)}
             >
@@ -129,22 +138,27 @@ export default function EditOperationScreen() {
               )}
               <ChevronDown size={18} color={colors.textMuted} strokeWidth={1.5} />
             </TouchableOpacity>
-            
+
             {showSectorPicker && (
               <View style={styles.sectorList}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.sectorOption}
                   onPress={() => {
                     setSelectedSectorId('');
                     setShowSectorPicker(false);
                   }}
                 >
-                  <Text style={[styles.sectorOptionText, !selectedSectorId && styles.sectorOptionSelected]}>
+                  <Text
+                    style={[
+                      styles.sectorOptionText,
+                      !selectedSectorId && styles.sectorOptionSelected,
+                    ]}
+                  >
                     Nenhum setor
                   </Text>
                 </TouchableOpacity>
                 {sectors.map((sector) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={sector.id}
                     style={styles.sectorOption}
                     onPress={() => {
@@ -153,10 +167,12 @@ export default function EditOperationScreen() {
                     }}
                   >
                     <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
-                    <Text style={[
-                      styles.sectorOptionText,
-                      selectedSectorId === sector.id && styles.sectorOptionSelected
-                    ]}>
+                    <Text
+                      style={[
+                        styles.sectorOptionText,
+                        selectedSectorId === sector.id && styles.sectorOptionSelected,
+                      ]}
+                    >
                       {sector.name}
                     </Text>
                   </TouchableOpacity>
@@ -194,10 +210,7 @@ export default function EditOperationScreen() {
           </View>
         </View>
 
-        <TouchableOpacity 
-          style={styles.saveButton}
-          onPress={handleSave}
-        >
+        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>Salvar Alterações</Text>
         </TouchableOpacity>
 

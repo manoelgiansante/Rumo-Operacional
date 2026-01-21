@@ -1,16 +1,24 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { 
-  ArrowLeft, 
-  Edit3, 
-  Trash2, 
-  CheckCircle, 
+import {
+  ArrowLeft,
+  Edit3,
+  Trash2,
+  CheckCircle,
   AlertTriangle,
   Calendar,
   Building2,
-  FileText
+  FileText,
 } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
@@ -19,10 +27,10 @@ export default function ExpenseDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { expenses, operations, updateExpense, deleteExpense } = useApp();
-  
-  const expense = expenses.find(e => e.id === id);
-  const operation = expense ? operations.find(op => op.id === expense.operationId) : null;
-  
+
+  const expense = expenses.find((e) => e.id === id);
+  const operation = expense ? operations.find((op) => op.id === expense.operationId) : null;
+
   const [isEditing, setIsEditing] = useState(false);
   const [invoiceValue, setInvoiceValue] = useState(expense?.invoiceValue?.toString() || '');
   const [invoiceNumber, setInvoiceNumber] = useState(expense?.invoiceNumber || '');
@@ -63,70 +71,72 @@ export default function ExpenseDetailScreen() {
 
   const handleSave = () => {
     const parsedInvoiceValue = invoiceValue ? parseFloat(invoiceValue) : undefined;
-    
+
     updateExpense(expense.id, {
       invoiceValue: parsedInvoiceValue,
       invoiceNumber: invoiceNumber || undefined,
       verificationNotes: notes || undefined,
     });
-    
+
     setIsEditing(false);
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      'Excluir Lançamento',
-      'Tem certeza que deseja excluir este lançamento?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Excluir', 
-          style: 'destructive',
-          onPress: () => {
-            deleteExpense(expense.id);
-            router.back();
-          }
+    Alert.alert('Excluir Lançamento', 'Tem certeza que deseja excluir este lançamento?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: () => {
+          deleteExpense(expense.id);
+          router.back();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleMarkAsPaid = () => {
-    Alert.alert(
-      'Confirmar Pagamento',
-      'Deseja marcar este lançamento como pago?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Confirmar', 
-          onPress: () => {
-            updateExpense(expense.id, { 
-              status: 'paid',
-              paymentDate: new Date().toISOString(),
-            });
-          }
+    Alert.alert('Confirmar Pagamento', 'Deseja marcar este lançamento como pago?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Confirmar',
+        onPress: () => {
+          updateExpense(expense.id, {
+            status: 'paid',
+            paymentDate: new Date().toISOString(),
+          });
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return colors.statusPending;
-      case 'verified': return colors.info;
-      case 'discrepancy': return colors.error;
-      case 'paid': return colors.success;
-      default: return colors.textMuted;
+      case 'pending':
+        return colors.statusPending;
+      case 'verified':
+        return colors.info;
+      case 'discrepancy':
+        return colors.error;
+      case 'paid':
+        return colors.success;
+      default:
+        return colors.textMuted;
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'pending': return 'Pendente';
-      case 'verified': return 'Verificado';
-      case 'discrepancy': return 'Divergência';
-      case 'paid': return 'Pago';
-      default: return status;
+      case 'pending':
+        return 'Pendente';
+      case 'verified':
+        return 'Verificado';
+      case 'discrepancy':
+        return 'Divergência';
+      case 'paid':
+        return 'Pago';
+      default:
+        return status;
     }
   };
 
@@ -151,7 +161,12 @@ export default function ExpenseDetailScreen() {
                 {operation?.name}
               </Text>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(expense.status) + '20' }]}>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: getStatusColor(expense.status) + '20' },
+              ]}
+            >
               <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
                 {getStatusLabel(expense.status)}
               </Text>
@@ -159,12 +174,12 @@ export default function ExpenseDetailScreen() {
           </View>
 
           <Text style={styles.description}>{expense.description}</Text>
-          
+
           <View style={styles.infoRow}>
             <Building2 size={16} color={colors.textMuted} />
             <Text style={styles.infoText}>{expense.supplier}</Text>
           </View>
-          
+
           <View style={styles.infoRow}>
             <Calendar size={16} color={colors.textMuted} />
             <Text style={styles.infoText}>Vencimento: {formatDate(expense.dueDate)}</Text>
@@ -178,7 +193,7 @@ export default function ExpenseDetailScreen() {
 
         <View style={styles.valuesCard}>
           <Text style={styles.sectionTitle}>Valores</Text>
-          
+
           <View style={styles.valueRow}>
             <Text style={styles.valueLabel}>Valor Combinado</Text>
             <Text style={styles.valueAmount}>{formatCurrency(expense.agreedValue)}</Text>
@@ -199,10 +214,14 @@ export default function ExpenseDetailScreen() {
           ) : (
             <View style={styles.valueRow}>
               <Text style={styles.valueLabel}>Valor da Nota</Text>
-              <Text style={[
-                styles.valueAmount,
-                expense.invoiceValue && expense.invoiceValue !== expense.agreedValue ? styles.valueError : undefined
-              ]}>
+              <Text
+                style={[
+                  styles.valueAmount,
+                  expense.invoiceValue && expense.invoiceValue !== expense.agreedValue
+                    ? styles.valueError
+                    : undefined,
+                ]}
+              >
                 {expense.invoiceValue ? formatCurrency(expense.invoiceValue) : '—'}
               </Text>
             </View>
@@ -220,7 +239,7 @@ export default function ExpenseDetailScreen() {
 
         <View style={styles.detailsCard}>
           <Text style={styles.sectionTitle}>Informações Adicionais</Text>
-          
+
           {isEditing ? (
             <View style={styles.editField}>
               <Text style={styles.editLabel}>Número da Nota</Text>

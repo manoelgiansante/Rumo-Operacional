@@ -51,7 +51,7 @@ export default function FinanceIntegrationScreen() {
   const loadFinancialData = useCallback(async () => {
     try {
       setSyncStatus('syncing');
-      
+
       // Carregar despesas do mesmo Supabase compartilhado
       const { data: expenses, error: expError } = await supabase
         .from('expenses')
@@ -73,7 +73,10 @@ export default function FinanceIntegrationScreen() {
       // Calcular sumário
       const totalExpenses = expenses?.reduce((acc, e) => acc + (e.amount || 0), 0) || 0;
       const totalRevenues = revenues?.reduce((acc, r) => acc + (r.amount || 0), 0) || 0;
-      const pendingExpenses = expenses?.filter(e => e.status === 'pending').reduce((acc, e) => acc + (e.amount || 0), 0) || 0;
+      const pendingExpenses =
+        expenses
+          ?.filter((e) => e.status === 'pending')
+          .reduce((acc, e) => acc + (e.amount || 0), 0) || 0;
 
       setSummary({
         totalExpenses,
@@ -84,7 +87,7 @@ export default function FinanceIntegrationScreen() {
 
       // Combinar e ordenar transações recentes
       const allTransactions: RecentTransaction[] = [
-        ...(expenses || []).slice(0, 5).map(e => ({
+        ...(expenses || []).slice(0, 5).map((e) => ({
           id: e.id,
           type: 'expense' as const,
           description: e.description || 'Despesa',
@@ -92,7 +95,7 @@ export default function FinanceIntegrationScreen() {
           date: e.date,
           category: e.category || 'Outros',
         })),
-        ...(revenues || []).slice(0, 5).map(r => ({
+        ...(revenues || []).slice(0, 5).map((r) => ({
           id: r.id,
           type: 'revenue' as const,
           description: r.description || 'Receita',
@@ -100,7 +103,9 @@ export default function FinanceIntegrationScreen() {
           date: r.date,
           category: r.category || 'Vendas',
         })),
-      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
+      ]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 10);
 
       setRecentTransactions(allTransactions);
       setSyncStatus('connected');
@@ -138,17 +143,23 @@ export default function FinanceIntegrationScreen() {
 
   const getSyncStatusColor = () => {
     switch (syncStatus) {
-      case 'connected': return colors.success;
-      case 'syncing': return colors.warning;
-      case 'error': return colors.error;
+      case 'connected':
+        return colors.success;
+      case 'syncing':
+        return colors.warning;
+      case 'error':
+        return colors.error;
     }
   };
 
   const getSyncStatusText = () => {
     switch (syncStatus) {
-      case 'connected': return 'Sincronizado';
-      case 'syncing': return 'Sincronizando...';
-      case 'error': return 'Erro de conexão';
+      case 'connected':
+        return 'Sincronizado';
+      case 'syncing':
+        return 'Sincronizando...';
+      case 'error':
+        return 'Erro de conexão';
     }
   };
 
@@ -158,13 +169,13 @@ export default function FinanceIntegrationScreen() {
       'O app Rumo Finance será aberto para gerenciamento financeiro completo.',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Abrir', 
+        {
+          text: 'Abrir',
           onPress: () => {
             // Deep link para o Rumo Finance
             // Linking.openURL('rumofinance://');
             Alert.alert('Em breve', 'Integração com deep link em desenvolvimento');
-          } 
+          },
         },
       ]
     );
@@ -204,11 +215,7 @@ export default function FinanceIntegrationScreen() {
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
         }
         showsVerticalScrollIndicator={false}
       >
@@ -250,12 +257,17 @@ export default function FinanceIntegrationScreen() {
             </View>
           </View>
 
-          <View style={[styles.balanceCard, summary.balance >= 0 ? styles.positiveBalance : styles.negativeBalance]}>
+          <View
+            style={[
+              styles.balanceCard,
+              summary.balance >= 0 ? styles.positiveBalance : styles.negativeBalance,
+            ]}
+          >
             <View style={styles.balanceLeft}>
-              <Ionicons 
-                name={summary.balance >= 0 ? "wallet" : "alert-circle"} 
-                size={32} 
-                color={colors.textLight} 
+              <Ionicons
+                name={summary.balance >= 0 ? 'wallet' : 'alert-circle'}
+                size={32}
+                color={colors.textLight}
               />
               <View style={styles.balanceInfo}>
                 <Text style={styles.balanceLabel}>Saldo Atual</Text>
@@ -285,17 +297,22 @@ export default function FinanceIntegrationScreen() {
             <View style={styles.emptyState}>
               <Ionicons name="document-text-outline" size={48} color={colors.textMuted} />
               <Text style={styles.emptyText}>Nenhuma transação encontrada</Text>
-              <Text style={styles.emptySubtext}>
-                Adicione despesas ou receitas no Rumo Finance
-              </Text>
+              <Text style={styles.emptySubtext}>Adicione despesas ou receitas no Rumo Finance</Text>
             </View>
           ) : (
             recentTransactions.map((transaction) => (
               <View key={transaction.id} style={styles.transactionItem}>
-                <View style={[
-                  styles.transactionIcon,
-                  { backgroundColor: transaction.type === 'revenue' ? colors.success + '20' : colors.error + '20' }
-                ]}>
+                <View
+                  style={[
+                    styles.transactionIcon,
+                    {
+                      backgroundColor:
+                        transaction.type === 'revenue'
+                          ? colors.success + '20'
+                          : colors.error + '20',
+                    },
+                  ]}
+                >
                   <Ionicons
                     name={transaction.type === 'revenue' ? 'arrow-down' : 'arrow-up'}
                     size={18}
@@ -310,11 +327,14 @@ export default function FinanceIntegrationScreen() {
                     {transaction.category} • {formatDate(transaction.date)}
                   </Text>
                 </View>
-                <Text style={[
-                  styles.transactionAmount,
-                  { color: transaction.type === 'revenue' ? colors.success : colors.error }
-                ]}>
-                  {transaction.type === 'revenue' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                <Text
+                  style={[
+                    styles.transactionAmount,
+                    { color: transaction.type === 'revenue' ? colors.success : colors.error },
+                  ]}
+                >
+                  {transaction.type === 'revenue' ? '+' : '-'}
+                  {formatCurrency(transaction.amount)}
                 </Text>
               </View>
             ))
@@ -324,7 +344,7 @@ export default function FinanceIntegrationScreen() {
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ações Rápidas</Text>
-          
+
           <View style={styles.actionsGrid}>
             <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/add-expense')}>
               <View style={[styles.actionIconContainer, { backgroundColor: colors.error + '20' }]}>
@@ -334,21 +354,27 @@ export default function FinanceIntegrationScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionCard} onPress={openRumoFinance}>
-              <View style={[styles.actionIconContainer, { backgroundColor: colors.success + '20' }]}>
+              <View
+                style={[styles.actionIconContainer, { backgroundColor: colors.success + '20' }]}
+              >
                 <Ionicons name="cash" size={28} color={colors.success} />
               </View>
               <Text style={styles.actionText}>Nova Receita</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionCard} onPress={openRumoFinance}>
-              <View style={[styles.actionIconContainer, { backgroundColor: colors.primary + '20' }]}>
+              <View
+                style={[styles.actionIconContainer, { backgroundColor: colors.primary + '20' }]}
+              >
                 <Ionicons name="bar-chart" size={28} color={colors.primary} />
               </View>
               <Text style={styles.actionText}>Relatórios</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionCard} onPress={openRumoFinance}>
-              <View style={[styles.actionIconContainer, { backgroundColor: colors.warning + '20' }]}>
+              <View
+                style={[styles.actionIconContainer, { backgroundColor: colors.warning + '20' }]}
+              >
                 <Ionicons name="calendar" size={28} color={colors.warning} />
               </View>
               <Text style={styles.actionText}>Previsões</Text>
@@ -362,9 +388,9 @@ export default function FinanceIntegrationScreen() {
           <View style={styles.infoContent}>
             <Text style={styles.infoTitle}>Sobre a Integração</Text>
             <Text style={styles.infoText}>
-              Os dados operacionais do Rumo Operacional são automaticamente sincronizados 
-              com o Rumo Finance. Despesas e custos registrados aqui aparecem no seu 
-              controle financeiro completo.
+              Os dados operacionais do Rumo Operacional são automaticamente sincronizados com o Rumo
+              Finance. Despesas e custos registrados aqui aparecem no seu controle financeiro
+              completo.
             </Text>
           </View>
         </View>

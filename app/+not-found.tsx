@@ -13,10 +13,7 @@ export default function NotFoundScreen() {
       <Text style={styles.subtitle}>
         A página que você está procurando não existe ou foi movida.
       </Text>
-      <TouchableOpacity 
-        style={styles.button}
-        onPress={() => router.replace('/')}
-      >
+      <TouchableOpacity style={styles.button} onPress={() => router.replace('/')}>
         <Home size={20} color={colors.textLight} />
         <Text style={styles.buttonText}>Voltar ao Início</Text>
       </TouchableOpacity>

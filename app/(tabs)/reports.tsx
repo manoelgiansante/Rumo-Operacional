@@ -1,14 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useMemo, useCallback } from 'react';
-import { useRouter } from 'expo-router';
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Lock, Crown } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 
-
 export default function ReportsScreen() {
-  const router = useRouter();
   const { expenses, operations, sectors, getOperationsBySector, loadData } = useApp();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
@@ -23,76 +20,82 @@ export default function ReportsScreen() {
     const month = selectedMonth.getMonth();
     const year = selectedMonth.getFullYear();
 
-    const monthExpenses = expenses.filter(exp => {
+    const monthExpenses = expenses.filter((exp) => {
       const expDate = new Date(exp.createdAt);
       return expDate.getMonth() === month && expDate.getFullYear() === year;
     });
 
-    const operationTotals = operations.map(op => {
-      let total = 0;
-      let paid = 0;
-      let count = 0;
-      
-      monthExpenses.forEach(exp => {
-        if (exp.isShared && exp.allocations) {
-          const allocation = exp.allocations.find(a => a.operationId === op.id);
-          if (allocation) {
-            total += allocation.value;
-            if (exp.status === 'paid') paid += allocation.value;
-            count++;
-          }
-        } else if (exp.operationId === op.id) {
-          total += exp.agreedValue;
-          if (exp.status === 'paid') paid += exp.agreedValue;
-          count++;
-        }
-      });
-      
-      const pending = total - paid;
-      return {
-        operation: op,
-        total,
-        paid,
-        pending,
-        count,
-      };
-    }).filter(item => item.total > 0);
+    const operationTotals = operations
+      .map((op) => {
+        let total = 0;
+        let paid = 0;
+        let count = 0;
 
-    const sectorTotals = sectors.map(sector => {
-      const sectorOps = getOperationsBySector(sector.id);
-      const sectorOpIds = sectorOps.map(op => op.id);
-      let total = 0;
-      let paid = 0;
-      let count = 0;
-      
-      monthExpenses.forEach(exp => {
-        if (exp.isShared && exp.allocations) {
-          exp.allocations.forEach(allocation => {
-            if (sectorOpIds.includes(allocation.operationId)) {
+        monthExpenses.forEach((exp) => {
+          if (exp.isShared && exp.allocations) {
+            const allocation = exp.allocations.find((a) => a.operationId === op.id);
+            if (allocation) {
               total += allocation.value;
               if (exp.status === 'paid') paid += allocation.value;
               count++;
             }
-          });
-        } else if (sectorOpIds.includes(exp.operationId)) {
-          total += exp.agreedValue;
-          if (exp.status === 'paid') paid += exp.agreedValue;
-          count++;
-        }
-      });
-      
-      const pending = total - paid;
-      return {
-        sector,
-        total,
-        paid,
-        pending,
-        count,
-      };
-    }).filter(item => item.total > 0);
+          } else if (exp.operationId === op.id) {
+            total += exp.agreedValue;
+            if (exp.status === 'paid') paid += exp.agreedValue;
+            count++;
+          }
+        });
+
+        const pending = total - paid;
+        return {
+          operation: op,
+          total,
+          paid,
+          pending,
+          count,
+        };
+      })
+      .filter((item) => item.total > 0);
+
+    const sectorTotals = sectors
+      .map((sector) => {
+        const sectorOps = getOperationsBySector(sector.id);
+        const sectorOpIds = sectorOps.map((op) => op.id);
+        let total = 0;
+        let paid = 0;
+        let count = 0;
+
+        monthExpenses.forEach((exp) => {
+          if (exp.isShared && exp.allocations) {
+            exp.allocations.forEach((allocation) => {
+              if (sectorOpIds.includes(allocation.operationId)) {
+                total += allocation.value;
+                if (exp.status === 'paid') paid += allocation.value;
+                count++;
+              }
+            });
+          } else if (sectorOpIds.includes(exp.operationId)) {
+            total += exp.agreedValue;
+            if (exp.status === 'paid') paid += exp.agreedValue;
+            count++;
+          }
+        });
+
+        const pending = total - paid;
+        return {
+          sector,
+          total,
+          paid,
+          pending,
+          count,
+        };
+      })
+      .filter((item) => item.total > 0);
 
     const totalMonth = monthExpenses.reduce((sum, exp) => sum + exp.agreedValue, 0);
-    const totalPaid = monthExpenses.filter(e => e.status === 'paid').reduce((sum, e) => sum + e.agreedValue, 0);
+    const totalPaid = monthExpenses
+      .filter((e) => e.status === 'paid')
+      .reduce((sum, e) => sum + e.agreedValue, 0);
     const totalPending = totalMonth - totalPaid;
 
     return {
@@ -112,16 +115,15 @@ export default function ReportsScreen() {
     const year = prevMonth.getFullYear();
 
     return expenses
-      .filter(exp => {
+      .filter((exp) => {
         const expDate = new Date(exp.createdAt);
         return expDate.getMonth() === month && expDate.getFullYear() === year;
       })
       .reduce((sum, exp) => sum + exp.agreedValue, 0);
   }, [expenses, selectedMonth]);
 
-  const percentChange = prevMonthData > 0 
-    ? ((monthlyData.totalMonth - prevMonthData) / prevMonthData) * 100 
-    : 0;
+  const percentChange =
+    prevMonthData > 0 ? ((monthlyData.totalMonth - prevMonthData) / prevMonthData) * 100 : 0;
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -133,8 +135,8 @@ export default function ReportsScreen() {
     setSelectedMonth(newDate);
   };
 
-  const maxTotal = Math.max(...monthlyData.operationTotals.map(item => item.total), 1);
-  const maxSectorTotal = Math.max(...monthlyData.sectorTotals.map(item => item.total), 1);
+  const maxTotal = Math.max(...monthlyData.operationTotals.map((item) => item.total), 1);
+  const maxSectorTotal = Math.max(...monthlyData.sectorTotals.map((item) => item.total), 1);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -143,48 +145,46 @@ export default function ReportsScreen() {
       </View>
 
       <View style={styles.monthSelector}>
-        <TouchableOpacity 
-          style={styles.monthButton}
-          onPress={() => changeMonth(-1)}
-        >
+        <TouchableOpacity style={styles.monthButton} onPress={() => changeMonth(-1)}>
           <ChevronLeft size={20} color={colors.primary} strokeWidth={1.5} />
         </TouchableOpacity>
         <Text style={styles.monthText}>
           {selectedMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
         </Text>
-        <TouchableOpacity 
-          style={styles.monthButton}
-          onPress={() => changeMonth(1)}
-        >
+        <TouchableOpacity style={styles.monthButton} onPress={() => changeMonth(1)}>
           <ChevronRight size={20} color={colors.primary} strokeWidth={1.5} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Total do Mês</Text>
           <Text style={styles.summaryValue}>{formatCurrency(monthlyData.totalMonth)}</Text>
-          
+
           {percentChange !== 0 && (
-            <View style={[
-              styles.changeIndicator,
-              { backgroundColor: percentChange > 0 ? colors.error + '10' : colors.success + '10' }
-            ]}>
+            <View
+              style={[
+                styles.changeIndicator,
+                {
+                  backgroundColor: percentChange > 0 ? colors.error + '10' : colors.success + '10',
+                },
+              ]}
+            >
               {percentChange > 0 ? (
                 <TrendingUp size={14} color={colors.error} strokeWidth={1.5} />
               ) : (
                 <TrendingDown size={14} color={colors.success} strokeWidth={1.5} />
               )}
-              <Text style={[
-                styles.changeText,
-                { color: percentChange > 0 ? colors.error : colors.success }
-              ]}>
+              <Text
+                style={[
+                  styles.changeText,
+                  { color: percentChange > 0 ? colors.error : colors.success },
+                ]}
+              >
                 {Math.abs(percentChange).toFixed(1)}% vs mês anterior
               </Text>
             </View>
@@ -227,16 +227,16 @@ export default function ReportsScreen() {
                   <Text style={styles.operationName}>{item.sector.name}</Text>
                   <Text style={styles.operationTotal}>{formatCurrency(item.total)}</Text>
                 </View>
-                
+
                 <View style={styles.barContainer}>
-                  <View 
+                  <View
                     style={[
                       styles.barFill,
-                      { 
+                      {
                         width: `${(item.total / maxSectorTotal) * 100}%`,
                         backgroundColor: item.sector.color,
-                      }
-                    ]} 
+                      },
+                    ]}
                   />
                 </View>
 
@@ -245,7 +245,8 @@ export default function ReportsScreen() {
                     <Text style={{ color: colors.success }}>{formatCurrency(item.paid)}</Text> pago
                   </Text>
                   <Text style={styles.detailText}>
-                    <Text style={{ color: colors.warning }}>{formatCurrency(item.pending)}</Text> pendente
+                    <Text style={{ color: colors.warning }}>{formatCurrency(item.pending)}</Text>{' '}
+                    pendente
                   </Text>
                 </View>
               </View>
@@ -268,16 +269,16 @@ export default function ReportsScreen() {
                   <Text style={styles.operationName}>{item.operation.name}</Text>
                   <Text style={styles.operationTotal}>{formatCurrency(item.total)}</Text>
                 </View>
-                
+
                 <View style={styles.barContainer}>
-                  <View 
+                  <View
                     style={[
                       styles.barFill,
-                      { 
+                      {
                         width: `${(item.total / maxTotal) * 100}%`,
                         backgroundColor: item.operation.color,
-                      }
-                    ]} 
+                      },
+                    ]}
                   />
                 </View>
 
@@ -286,7 +287,8 @@ export default function ReportsScreen() {
                     <Text style={{ color: colors.success }}>{formatCurrency(item.paid)}</Text> pago
                   </Text>
                   <Text style={styles.detailText}>
-                    <Text style={{ color: colors.warning }}>{formatCurrency(item.pending)}</Text> pendente
+                    <Text style={{ color: colors.warning }}>{formatCurrency(item.pending)}</Text>{' '}
+                    pendente
                   </Text>
                 </View>
               </View>
@@ -303,19 +305,21 @@ export default function ReportsScreen() {
                 return (
                   <View key={item.operation.id} style={styles.distributionItem}>
                     <View style={styles.distributionHeader}>
-                      <View style={[styles.distributionDot, { backgroundColor: item.operation.color }]} />
+                      <View
+                        style={[styles.distributionDot, { backgroundColor: item.operation.color }]}
+                      />
                       <Text style={styles.distributionName}>{item.operation.name}</Text>
                       <Text style={styles.distributionPercent}>{percentage.toFixed(1)}%</Text>
                     </View>
                     <View style={styles.distributionBarContainer}>
-                      <View 
+                      <View
                         style={[
                           styles.distributionBar,
-                          { 
+                          {
                             width: `${percentage}%`,
                             backgroundColor: item.operation.color,
-                          }
-                        ]} 
+                          },
+                        ]}
                       />
                     </View>
                   </View>

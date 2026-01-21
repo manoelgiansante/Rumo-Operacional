@@ -8,9 +8,9 @@
  * @returns String formatada em BRL (ex: R$ 1.234,56)
  */
 export const formatCurrency = (value: number): string => {
-  return value.toLocaleString('pt-BR', { 
-    style: 'currency', 
-    currency: 'BRL' 
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
   });
 };
 
@@ -23,7 +23,7 @@ export const formatCurrency = (value: number): string => {
 export const formatCurrencyInput = (value: string): string => {
   const number = value.replace(/\D/g, '');
   if (!number) return '';
-  
+
   const formatted = (parseInt(number) / 100).toLocaleString('pt-BR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -50,7 +50,7 @@ export const parseCurrencyInput = (text: string): number | null => {
 export const formatDateShort = (dateString: string): string => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return 'Data inválida';
-  
+
   return date.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
@@ -65,7 +65,7 @@ export const formatDateShort = (dateString: string): string => {
 export const formatDateFull = (dateString: string): string => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return 'Data inválida';
-  
+
   return date.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -81,11 +81,11 @@ export const formatDateFull = (dateString: string): string => {
 export const formatDateForInput = (dateString: string): string => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return '';
-  
+
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear();
-  
+
   return `${day}/${month}/${year}`;
 };
 
@@ -97,23 +97,21 @@ export const formatDateForInput = (dateString: string): string => {
 export const parseDateFromInput = (dateString: string): string | null => {
   const parts = dateString.split('/');
   if (parts.length !== 3) return null;
-  
+
   const [day, month, year] = parts.map(Number);
-  
+
   if (!day || !month || !year) return null;
   if (day < 1 || day > 31) return null;
   if (month < 1 || month > 12) return null;
   if (year < 1900 || year > 2100) return null;
-  
+
   const date = new Date(year, month - 1, day);
-  
+
   // Verifica se a data é válida (ex: 31/02 seria inválido)
-  if (date.getDate() !== day || 
-      date.getMonth() !== month - 1 || 
-      date.getFullYear() !== year) {
+  if (date.getDate() !== day || date.getMonth() !== month - 1 || date.getFullYear() !== year) {
     return null;
   }
-  
+
   return date.toISOString().split('T')[0];
 };
 
@@ -123,8 +121,7 @@ export const parseDateFromInput = (dateString: string): string | null => {
  * @returns Nome do mês capitalizado (ex: Janeiro)
  */
 export const formatMonthName = (date: Date): string => {
-  return date.toLocaleDateString('pt-BR', { month: 'long' })
-    .replace(/^\w/, c => c.toUpperCase());
+  return date.toLocaleDateString('pt-BR', { month: 'long' }).replace(/^\w/, (c) => c.toUpperCase());
 };
 
 /**
