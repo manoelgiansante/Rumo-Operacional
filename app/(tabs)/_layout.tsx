@@ -1,36 +1,28 @@
 import { Tabs, useRouter, usePathname } from 'expo-router';
-import { Home, FileText, CheckCircle, BarChart3, Settings, User, LogOut } from 'lucide-react-native';
+import { Home, FileText, CheckCircle, BarChart3, Settings, User, Menu, X } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
-import { Platform, View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { Platform, View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
+import { useState, useEffect } from 'react';
 
-// Componente de Item do Menu para Web
-function MenuItem({ 
-  icon: Icon, 
-  label, 
-  route, 
-  isActive 
-}: { 
-  icon: any; 
-  label: string; 
-  route: string; 
-  isActive: boolean;
-}) {
-  const router = useRouter();
-  
-  return (
-    <Pressable
-      style={[styles.menuItem, isActive && styles.menuItemActive]}
-      onPress={() => router.push(route as any)}
-    >
-      <Icon size={20} color={isActive ? colors.primary : colors.textMuted} strokeWidth={1.5} />
-      <Text style={[styles.menuLabel, isActive && styles.menuLabelActive]}>{label}</Text>
-    </Pressable>
-  );
-}
+// Breakpoint para considerar mobile (menos que 768px)
+const MOBILE_BREAKPOINT = 768;
 
 // Layout com Sidebar para Web
 function WebLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { width } = useWindowDimensions();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Detecta se é mobile baseado na largura da tela
+  const isMobile = width < MOBILE_BREAKPOINT;
+  
+  // Fecha sidebar quando navegar (no mobile)
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [pathname, isMobile]);
   
   const menuItems = [
     { icon: Home, label: 'Dashboard', route: '/' },
@@ -39,51 +31,115 @@ function WebLayout({ children }: { children: React.ReactNode }) {
     { icon: BarChart3, label: 'Relatórios', route: '/reports' },
     { icon: Settings, label: 'Configurações', route: '/settings' },
   ];
+
+  const handleMenuItemPress = (route: string) => {
+    router.push(route as any);
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  };
   
   return (
     <View style={styles.webContainer}>
-      {/* Sidebar */}
-      <View style={styles.sidebar}>
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <View style={styles.logoIcon}>
-            <Text style={styles.logoText}>R</Text>
+      {/* Overlay para fechar sidebar no mobile */}
+      {isMobile && sidebarOpen && (
+        <Pressable 
+          style={styles.overlay} 
+          onPress={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar - sempre visível no desktop, toggle no mobile */}
+      {(!isMobile || sidebarOpen) && (
+        <View style={[
+          styles.sidebar,
+          isMobile && styles.sidebarMobile
+        ]}>
+          {/* Header com botão de fechar no mobile */}
+          <View style={styles.sidebarHeader}>
+            {/* Logo */}
+            <View style={styles.logoContainer}>
+              <View style={styles.logoIcon}>
+                <Text style={styles.logoText}>R</Text>
+              </View>
+              <View>
+                <Text style={styles.logoTitle}>Rumo</Text>
+                <Text style={styles.logoSubtitle}>Operacional</Text>
+              </View>
+            </View>
+            
+            {/* Botão fechar no mobile */}
+            {isMobile && (
+              <Pressable 
+                style={styles.closeButton}
+                onPress={() => setSidebarOpen(false)}
+              >
+                <X size={24} color={colors.text} strokeWidth={1.5} />
+              </Pressable>
+            )}
           </View>
-          <View>
-            <Text style={styles.logoTitle}>Rumo</Text>
-            <Text style={styles.logoSubtitle}>Operacional</Text>
+          
+          {/* Menu */}
+          <ScrollView style={styles.menuContainer} showsVerticalScrollIndicator={false}>
+            {menuItems.map((item) => (
+              <Pressable
+                key={item.route}
+                style={[
+                  styles.menuItem, 
+                  (pathname === item.route || (item.route === '/' && pathname === '/(tabs)')) && styles.menuItemActive
+                ]}
+                onPress={() => handleMenuItemPress(item.route)}
+              >
+                <item.icon 
+                  size={20} 
+                  color={(pathname === item.route || (item.route === '/' && pathname === '/(tabs)')) ? colors.primary : colors.textMuted} 
+                  strokeWidth={1.5} 
+                />
+                <Text style={[
+                  styles.menuLabel, 
+                  (pathname === item.route || (item.route === '/' && pathname === '/(tabs)')) && styles.menuLabelActive
+                ]}>
+                  {item.label}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+          
+          {/* User Section */}
+          <View style={styles.userSection}>
+            <View style={styles.userInfo}>
+              <View style={styles.userAvatar}>
+                <User size={18} color={colors.textMuted} />
+              </View>
+              <View>
+                <Text style={styles.userName}>Minha Conta</Text>
+                <Text style={styles.userPlan}>Premium</Text>
+              </View>
+            </View>
           </View>
         </View>
-        
-        {/* Menu */}
-        <ScrollView style={styles.menuContainer} showsVerticalScrollIndicator={false}>
-          {menuItems.map((item) => (
-            <MenuItem
-              key={item.route}
-              icon={item.icon}
-              label={item.label}
-              route={item.route}
-              isActive={pathname === item.route || (item.route === '/' && pathname === '/(tabs)')}
-            />
-          ))}
-        </ScrollView>
-        
-        {/* User Section */}
-        <View style={styles.userSection}>
-          <View style={styles.userInfo}>
-            <View style={styles.userAvatar}>
-              <User size={18} color={colors.textMuted} />
-            </View>
-            <View>
-              <Text style={styles.userName}>Minha Conta</Text>
-              <Text style={styles.userPlan}>Premium</Text>
-            </View>
-          </View>
-        </View>
-      </View>
+      )}
       
       {/* Main Content */}
       <View style={styles.mainContent}>
+        {/* Header mobile com hamburger menu */}
+        {isMobile && (
+          <View style={styles.mobileHeader}>
+            <Pressable 
+              style={styles.hamburgerButton}
+              onPress={() => setSidebarOpen(true)}
+            >
+              <Menu size={24} color={colors.text} strokeWidth={1.5} />
+            </Pressable>
+            <View style={styles.mobileLogoContainer}>
+              <View style={styles.mobileLogoIcon}>
+                <Text style={styles.mobileLogoText}>R</Text>
+              </View>
+              <Text style={styles.mobileLogoTitle}>Rumo</Text>
+            </View>
+            <View style={styles.hamburgerButton} />
+          </View>
+        )}
         {children}
       </View>
     </View>
@@ -179,12 +235,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.background,
   },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 10,
+  },
   sidebar: {
     width: 260,
     backgroundColor: colors.surface,
     borderRightWidth: 1,
     borderRightColor: colors.border,
     paddingVertical: 20,
+  },
+  sidebarMobile: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    zIndex: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  sidebarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: 12,
+  },
+  closeButton: {
+    padding: 8,
+    borderRadius: 8,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -271,5 +358,45 @@ const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  mobileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  hamburgerButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
+  mobileLogoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  mobileLogoIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mobileLogoText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  mobileLogoTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
   },
 });
