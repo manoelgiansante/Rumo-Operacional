@@ -240,19 +240,34 @@ export default function AddExpenseScreen() {
 
             {showOperationPicker && (
               <View style={styles.picker}>
-                {operations.map((op) => (
-                  <TouchableOpacity
-                    key={op.id}
-                    style={styles.pickerItem}
-                    onPress={() => {
-                      setSelectedOperation(op.id);
-                      setShowOperationPicker(false);
-                    }}
-                  >
-                    <View style={[styles.optionDot, { backgroundColor: op.color }]} />
-                    <Text style={styles.pickerText}>{op.name}</Text>
-                  </TouchableOpacity>
-                ))}
+                {operations.length === 0 ? (
+                  <View style={styles.emptyPicker}>
+                    <Text style={styles.emptyPickerText}>Nenhuma operação cadastrada</Text>
+                    <TouchableOpacity
+                      style={styles.emptyPickerButton}
+                      onPress={() => {
+                        setShowOperationPicker(false);
+                        router.push('/add-operation');
+                      }}
+                    >
+                      <Text style={styles.emptyPickerButtonText}>Criar operação</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  operations.map((op) => (
+                    <TouchableOpacity
+                      key={op.id}
+                      style={styles.pickerItem}
+                      onPress={() => {
+                        setSelectedOperation(op.id);
+                        setShowOperationPicker(false);
+                      }}
+                    >
+                      <View style={[styles.optionDot, { backgroundColor: op.color }]} />
+                      <Text style={styles.pickerText}>{op.name}</Text>
+                    </TouchableOpacity>
+                  ))
+                )}
               </View>
             )}
           </View>
@@ -284,20 +299,56 @@ export default function AddExpenseScreen() {
 
             {showMultiOperationPicker && (
               <View style={styles.picker}>
-                {operations.map((op) => {
-                  const isSelected = selectedOperations.some((s) => s.operationId === op.id);
-                  return (
+                {operations.length === 0 ? (
+                  <View style={styles.emptyPicker}>
+                    <Text style={styles.emptyPickerText}>Nenhuma operação cadastrada</Text>
+                    <Text style={styles.emptyPickerSubtext}>
+                      Crie pelo menos 2 operações para usar o rateio
+                    </Text>
                     <TouchableOpacity
-                      key={op.id}
-                      style={[styles.pickerItem, isSelected && styles.pickerItemSelected]}
-                      onPress={() => toggleOperationSelection(op.id)}
+                      style={styles.emptyPickerButton}
+                      onPress={() => {
+                        setShowMultiOperationPicker(false);
+                        router.push('/add-operation');
+                      }}
                     >
-                      <View style={[styles.optionDot, { backgroundColor: op.color }]} />
-                      <Text style={styles.pickerText}>{op.name}</Text>
-                      {isSelected && <Check size={18} color={colors.primary} />}
+                      <Text style={styles.emptyPickerButtonText}>Criar operação</Text>
                     </TouchableOpacity>
-                  );
-                })}
+                  </View>
+                ) : operations.length < 2 ? (
+                  <View style={styles.emptyPicker}>
+                    <Text style={styles.emptyPickerText}>
+                      Apenas {operations.length} operação cadastrada
+                    </Text>
+                    <Text style={styles.emptyPickerSubtext}>
+                      Para ratear custos, crie pelo menos 2 operações
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.emptyPickerButton}
+                      onPress={() => {
+                        setShowMultiOperationPicker(false);
+                        router.push('/add-operation');
+                      }}
+                    >
+                      <Text style={styles.emptyPickerButtonText}>Criar operação</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  operations.map((op) => {
+                    const isSelected = selectedOperations.some((s) => s.operationId === op.id);
+                    return (
+                      <TouchableOpacity
+                        key={op.id}
+                        style={[styles.pickerItem, isSelected && styles.pickerItemSelected]}
+                        onPress={() => toggleOperationSelection(op.id)}
+                      >
+                        <View style={[styles.optionDot, { backgroundColor: op.color }]} />
+                        <Text style={styles.pickerText}>{op.name}</Text>
+                        {isSelected && <Check size={18} color={colors.primary} />}
+                      </TouchableOpacity>
+                    );
+                  })
+                )}
               </View>
             )}
 
@@ -577,6 +628,34 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
     flex: 1,
+  },
+  emptyPicker: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyPickerText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: colors.text,
+    textAlign: 'center' as const,
+  },
+  emptyPickerSubtext: {
+    fontSize: 13,
+    color: colors.textMuted,
+    textAlign: 'center' as const,
+    marginTop: 4,
+  },
+  emptyPickerButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  emptyPickerButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: colors.textLight,
   },
   currencyInput: {
     flexDirection: 'row',
