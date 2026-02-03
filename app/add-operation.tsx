@@ -134,29 +134,47 @@ export default function AddOperationScreen() {
           </TouchableOpacity>
           {showSectorPicker && (
             <View style={styles.pickerDropdown}>
-              {sectors.map((sector) => (
-                <TouchableOpacity
-                  key={sector.id}
-                  style={[
-                    styles.pickerItem,
-                    selectedSectorId === sector.id && styles.pickerItemSelected,
-                  ]}
-                  onPress={() => {
-                    setSelectedSectorId(sector.id);
-                    setShowSectorPicker(false);
-                  }}
-                >
-                  <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
-                  <Text
-                    style={[
-                      styles.pickerItemText,
-                      selectedSectorId === sector.id && styles.pickerItemTextSelected,
-                    ]}
-                  >
-                    {sector.name}
+              {sectors.length === 0 ? (
+                <View style={styles.emptyPicker}>
+                  <Text style={styles.emptyPickerText}>Nenhum setor cadastrado</Text>
+                  <Text style={styles.emptyPickerSubtext}>
+                    Crie um setor antes de adicionar operações
                   </Text>
-                </TouchableOpacity>
-              ))}
+                  <TouchableOpacity
+                    style={styles.emptyPickerButton}
+                    onPress={() => {
+                      setShowSectorPicker(false);
+                      router.push('/add-sector');
+                    }}
+                  >
+                    <Text style={styles.emptyPickerButtonText}>Criar setor</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                sectors.map((sector) => (
+                  <TouchableOpacity
+                    key={sector.id}
+                    style={[
+                      styles.pickerItem,
+                      selectedSectorId === sector.id && styles.pickerItemSelected,
+                    ]}
+                    onPress={() => {
+                      setSelectedSectorId(sector.id);
+                      setShowSectorPicker(false);
+                    }}
+                  >
+                    <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
+                    <Text
+                      style={[
+                        styles.pickerItemText,
+                        selectedSectorId === sector.id && styles.pickerItemTextSelected,
+                      ]}
+                    >
+                      {sector.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              )}
             </View>
           )}
         </View>
@@ -416,6 +434,34 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     marginRight: 12,
+  },
+  emptyPicker: {
+    padding: 20,
+    alignItems: 'center' as const,
+  },
+  emptyPickerText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: colors.text,
+    textAlign: 'center' as const,
+  },
+  emptyPickerSubtext: {
+    fontSize: 13,
+    color: colors.textMuted,
+    textAlign: 'center' as const,
+    marginTop: 4,
+  },
+  emptyPickerButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  emptyPickerButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: colors.textLight,
   },
   bottomSpacing: {
     height: 40,

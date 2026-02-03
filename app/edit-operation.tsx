@@ -141,42 +141,59 @@ export default function EditOperationScreen() {
 
             {showSectorPicker && (
               <View style={styles.sectorList}>
-                <TouchableOpacity
-                  style={styles.sectorOption}
-                  onPress={() => {
-                    setSelectedSectorId('');
-                    setShowSectorPicker(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.sectorOptionText,
-                      !selectedSectorId && styles.sectorOptionSelected,
-                    ]}
-                  >
-                    Nenhum setor
-                  </Text>
-                </TouchableOpacity>
-                {sectors.map((sector) => (
-                  <TouchableOpacity
-                    key={sector.id}
-                    style={styles.sectorOption}
-                    onPress={() => {
-                      setSelectedSectorId(sector.id);
-                      setShowSectorPicker(false);
-                    }}
-                  >
-                    <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
-                    <Text
-                      style={[
-                        styles.sectorOptionText,
-                        selectedSectorId === sector.id && styles.sectorOptionSelected,
-                      ]}
+                {sectors.length === 0 ? (
+                  <View style={styles.emptyPicker}>
+                    <Text style={styles.emptyPickerText}>Nenhum setor cadastrado</Text>
+                    <TouchableOpacity
+                      style={styles.emptyPickerButton}
+                      onPress={() => {
+                        setShowSectorPicker(false);
+                        router.push('/add-sector');
+                      }}
                     >
-                      {sector.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text style={styles.emptyPickerButtonText}>Criar setor</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      style={styles.sectorOption}
+                      onPress={() => {
+                        setSelectedSectorId('');
+                        setShowSectorPicker(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.sectorOptionText,
+                          !selectedSectorId && styles.sectorOptionSelected,
+                        ]}
+                      >
+                        Nenhum setor
+                      </Text>
+                    </TouchableOpacity>
+                    {sectors.map((sector) => (
+                      <TouchableOpacity
+                        key={sector.id}
+                        style={styles.sectorOption}
+                        onPress={() => {
+                          setSelectedSectorId(sector.id);
+                          setShowSectorPicker(false);
+                        }}
+                      >
+                        <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
+                        <Text
+                          style={[
+                            styles.sectorOptionText,
+                            selectedSectorId === sector.id && styles.sectorOptionSelected,
+                          ]}
+                        >
+                          {sector.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </>
+                )}
               </View>
             )}
           </View>
@@ -378,6 +395,28 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
     fontWeight: '500',
+  },
+  emptyPicker: {
+    padding: 20,
+    alignItems: 'center' as const,
+  },
+  emptyPickerText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: colors.text,
+    textAlign: 'center' as const,
+  },
+  emptyPickerButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  emptyPickerButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: colors.textLight,
   },
   saveButton: {
     backgroundColor: colors.primary,
