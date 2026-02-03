@@ -177,17 +177,18 @@ export default function TabLayout() {
             backgroundColor: colors.surface,
             borderTopWidth: 1,
             borderTopColor: colors.border,
-            paddingTop: 6,
-            paddingBottom: 20,
-            height: 75,
+            paddingTop: 10,
+            paddingBottom: 28,
+            height: 85,
           },
           tabBarLabelStyle: {
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: '500',
-            marginTop: 2,
+            marginTop: 4,
+            marginBottom: 2,
           },
           tabBarIconStyle: {
-            marginBottom: 0,
+            marginBottom: 2,
           },
         }}
       >
@@ -262,14 +263,16 @@ export default function TabLayout() {
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          paddingTop: 8,
-          paddingBottom: Platform.OS === 'web' ? 8 : 8,
-          height: Platform.OS === 'web' ? 60 : 64,
+          paddingTop: 10,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+          height: Platform.OS === 'ios' ? 88 : 72,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '500',
           letterSpacing: 0.2,
+          marginTop: 4,
+          marginBottom: 2,
         },
       }}
     >
