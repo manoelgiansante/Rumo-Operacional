@@ -50,7 +50,7 @@ export default function EditOperationScreen() {
 
   const selectedSector = sectors.find((s) => s.id === selectedSectorId);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert('Erro', 'Por favor, informe o nome da operação');
       return;
@@ -61,12 +61,17 @@ export default function EditOperationScreen() {
       return;
     }
 
-    updateOperation(operationId, {
+    const result = await updateOperation(operationId, {
       name: name.trim(),
       description: description.trim(),
       color: selectedColor,
-      sectorId: selectedSectorId || undefined,
+      sectorId: selectedSectorId || '',
     });
+
+    if (result === false) {
+      Alert.alert('Erro', 'Não foi possível salvar a operação. Tente novamente.');
+      return;
+    }
 
     router.back();
   };

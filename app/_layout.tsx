@@ -90,8 +90,11 @@ function RootLayoutNav() {
       <Stack.Screen name="add-expense" options={{ presentation: 'modal' }} />
       <Stack.Screen name="add-operation" options={{ presentation: 'modal' }} />
       <Stack.Screen name="add-sector" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="edit-operation" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="edit-sector" options={{ presentation: 'modal' }} />
       <Stack.Screen name="expense-detail" options={{ presentation: 'card' }} />
       <Stack.Screen name="subscription" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="finance-integration" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

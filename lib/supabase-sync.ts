@@ -363,22 +363,8 @@ class SupabaseSyncService {
         return { success: false, user: null, session: null, error: 'Usuário não encontrado' };
       }
 
-      // 2. Tentar login no Máquinas (mesmo email/senha)
-      try {
-        await this.maquinas.auth.signInWithPassword({ email, password });
-        console.log('[SSO] Login sincronizado com Máquinas');
-      } catch {
-        // Se não existir no Máquinas, criar conta
-        try {
-          await this.maquinas.auth.signUp({ email, password });
-          console.log('[SSO] Conta criada no Máquinas');
-        } catch {
-          console.log('[SSO] Não foi possível sincronizar com Máquinas');
-        }
-      }
-
-      // 3. Sincronizar dados
-      await this.syncUserAfterLogin(principalAuth.user.id, email);
+      // 2. Sincronizar com Maquinas em background (nao bloqueia login)
+      this.syncMaquinasInBackground(email, password, principalAuth.user.id);
 
       return {
         success: true,
@@ -387,6 +373,32 @@ class SupabaseSyncService {
       };
     } catch (error: any) {
       return { success: false, user: null, session: null, error: error.message };
+    }
+  }
+
+  // =====================================================
+  // SINCRONIZACAO BACKGROUND COM MAQUINAS
+  // =====================================================
+  private async syncMaquinasInBackground(
+    email: string,
+    password: string,
+    userId: string
+  ): Promise<void> {
+    try {
+      try {
+        await this.maquinas.auth.signInWithPassword({ email, password });
+        console.log('[SSO] Login sincronizado com Maquinas');
+      } catch {
+        try {
+          await this.maquinas.auth.signUp({ email, password });
+          console.log('[SSO] Conta criada no Maquinas');
+        } catch {
+          console.log('[SSO] Nao foi possivel sincronizar com Maquinas');
+        }
+      }
+      await this.syncUserAfterLogin(userId, email);
+    } catch (error) {
+      console.log('[SSO] Background sync failed (non-critical):', error);
     }
   }
 
@@ -453,13 +465,24 @@ class SupabaseSyncService {
   // =====================================================
   async signOutAll(): Promise<void> {
     try {
-      await Promise.all([this.principal.auth.signOut(), this.maquinas.auth.signOut()]);
+      await this.principal.auth.signOut();
+    } catch (error) {
+      console.log('[SSO] Erro no logout principal:', error);
+    }
+
+    try {
+      await this.maquinas.auth.signOut();
+    } catch {
+      console.log('[SSO] Maquinas logout skipped');
+    }
+
+    try {
       await AsyncStorage.removeItem('lastSsoSync');
       await AsyncStorage.removeItem('ssoUserId');
-      console.log('[SSO] Logout de todos os sistemas');
-    } catch (error) {
-      console.error('[SSO] Erro no logout:', error);
+    } catch {
+      // ignore
     }
+    console.log('[SSO] Logout concluido');
   }
 
   // =====================================================

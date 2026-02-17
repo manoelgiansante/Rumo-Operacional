@@ -23,7 +23,7 @@ const tutorialSteps = [
   {
     icon: Leaf,
     iconColor: colors.primary,
-    title: 'Bem-vindo ao Agrofinance!',
+    title: 'Bem-vindo ao Rumo Operacional!',
     description:
       'Gerencie todos os custos operacionais da sua propriedade rural de forma simples e organizada.',
     tips: [

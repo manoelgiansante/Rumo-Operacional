@@ -10,19 +10,26 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Palette } from 'lucide-react-native';
+import { X, Check } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 
-const COLORS = [
-  '#2E7D32',
-  '#1565C0',
-  '#7B1FA2',
-  '#C62828',
-  '#F57F17',
-  '#00838F',
-  '#4527A0',
-  '#AD1457',
+const SECTOR_COLORS = [
+  '#8B4513',
+  '#228B22',
+  '#6B4423',
+  '#4A90A4',
+  '#9C27B0',
+  '#E91E63',
+  '#FF9800',
+  '#795548',
+  '#607D8B',
+  '#3F51B5',
+  '#00BCD4',
+  '#4CAF50',
+  '#FFC107',
+  '#9E9E9E',
+  '#673AB7',
 ];
 
 export default function EditSectorScreen() {
@@ -35,7 +42,7 @@ export default function EditSectorScreen() {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedColor, setSelectedColor] = useState(COLORS[0]);
+  const [selectedColor, setSelectedColor] = useState(SECTOR_COLORS[0]);
 
   useEffect(() => {
     if (sector) {
@@ -45,7 +52,7 @@ export default function EditSectorScreen() {
     }
   }, [sector]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert('Erro', 'Por favor, informe o nome do setor');
       return;
@@ -56,11 +63,16 @@ export default function EditSectorScreen() {
       return;
     }
 
-    updateSector(sectorId, {
+    const result = await updateSector(sectorId, {
       name: name.trim(),
       description: description.trim(),
       color: selectedColor,
     });
+
+    if (result === false) {
+      Alert.alert('Erro', 'Não foi possível salvar o setor. Tente novamente.');
+      return;
+    }
 
     router.back();
   };
@@ -69,11 +81,11 @@ export default function EditSectorScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <ArrowLeft size={22} color={colors.text} strokeWidth={1.5} />
+          <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
+            <X size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Setor não encontrado</Text>
-          <View style={{ width: 40 }} />
+          <View style={{ width: 60 }} />
         </View>
       </SafeAreaView>
     );
@@ -82,74 +94,69 @@ export default function EditSectorScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={22} color={colors.text} strokeWidth={1.5} />
+        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
+          <X size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Editar Setor</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <Text style={styles.saveButtonText}>Salvar</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nome do Setor</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="Ex: Talhão Norte"
-              placeholderTextColor={colors.textMuted}
-            />
+        <View style={styles.preview}>
+          <View style={[styles.previewIcon, { backgroundColor: selectedColor + '20' }]}>
+            <View style={[styles.previewDot, { backgroundColor: selectedColor }]} />
           </View>
+          <Text style={styles.previewName}>{name || 'Nome do Setor'}</Text>
+          <Text style={styles.previewDescription}>{description || 'Descrição'}</Text>
+        </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Descrição (opcional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Ex: Área de 50 hectares com plantio de soja"
-              placeholderTextColor={colors.textMuted}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-          </View>
+        <View style={styles.field}>
+          <Text style={styles.label}>Nome do Setor *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex: Pecuária, Agricultura, Compostagem..."
+            placeholderTextColor={colors.textMuted}
+            value={name}
+            onChangeText={setName}
+          />
+        </View>
 
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Palette size={16} color={colors.textMuted} strokeWidth={1.5} />
-              <Text style={styles.label}>Cor de Identificação</Text>
-            </View>
-            <View style={styles.colorGrid}>
-              {COLORS.map((color) => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorOption,
-                    { backgroundColor: color },
-                    selectedColor === color && styles.colorOptionSelected,
-                  ]}
-                  onPress={() => setSelectedColor(color)}
-                />
-              ))}
-            </View>
-          </View>
+        <View style={styles.field}>
+          <Text style={styles.label}>Descrição</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Descreva brevemente este setor..."
+            placeholderTextColor={colors.textMuted}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
+        </View>
 
-          <View style={styles.previewContainer}>
-            <Text style={styles.previewLabel}>Preview</Text>
-            <View style={styles.preview}>
-              <View style={[styles.previewDot, { backgroundColor: selectedColor }]} />
-              <Text style={styles.previewText}>{name || 'Nome do setor'}</Text>
-            </View>
+        <View style={styles.field}>
+          <Text style={styles.label}>Cor de Identificação</Text>
+          <View style={styles.colorGrid}>
+            {SECTOR_COLORS.map((color) => (
+              <TouchableOpacity
+                key={color}
+                style={[
+                  styles.colorItem,
+                  { backgroundColor: color },
+                  selectedColor === color && styles.colorItemSelected,
+                ]}
+                onPress={() => setSelectedColor(color)}
+              >
+                {selectedColor === color && <Check size={18} color="#fff" />}
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Salvar Alterações</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: 40 }} />
+        <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -165,44 +172,72 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
     backgroundColor: colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
+  },
+  closeButton: {
+    padding: 4,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: colors.text,
   },
+  saveButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  saveButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textLight,
+  },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    padding: 20,
   },
-  form: {
-    gap: 20,
-  },
-  inputGroup: {
-    gap: 8,
-  },
-  labelRow: {
-    flexDirection: 'row',
+  preview: {
     alignItems: 'center',
-    gap: 6,
-    marginBottom: -4,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
+  },
+  previewIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  previewDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  previewName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  previewDescription: {
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  field: {
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
-    color: colors.textSecondary,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
   },
   input: {
     backgroundColor: colors.surface,
@@ -214,65 +249,25 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   textArea: {
-    minHeight: 90,
+    minHeight: 80,
   },
   colorGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
   },
-  colorOption: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  colorItem: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  colorItemSelected: {
     borderWidth: 3,
-    borderColor: 'transparent',
-  },
-  colorOptionSelected: {
     borderColor: colors.text,
-    transform: [{ scale: 1.15 }],
   },
-  previewContainer: {
-    marginTop: 8,
-  },
-  previewLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.textMuted,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  preview: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  previewDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 12,
-  },
-  previewText: {
-    fontSize: 15,
-    color: colors.text,
-    fontWeight: '500',
-  },
-  saveButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 32,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textLight,
+  bottomSpacing: {
+    height: 40,
   },
 });

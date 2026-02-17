@@ -265,7 +265,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
         setSectors(newSectors);
         await saveLocalData(newSectors, undefined, undefined);
         console.log('[App] Sector updated locally');
-        return;
+        return true;
       }
 
       console.log('[App] Updating sector:', id);
@@ -280,11 +280,12 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
       if (error) {
         console.log('[App] Error updating sector:', error);
-        return;
+        return false;
       }
 
       setSectors((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
       console.log('[App] Sector updated successfully');
+      return true;
     },
     [user, sectors, saveLocalData]
   );
@@ -390,7 +391,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
         setOperations(newOperations);
         await saveLocalData(undefined, newOperations, undefined);
         console.log('[App] Operation updated locally');
-        return;
+        return true;
       }
 
       console.log('[App] Updating operation:', id);
@@ -406,11 +407,12 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
       if (error) {
         console.log('[App] Error updating operation:', error);
-        return;
+        return false;
       }
 
       setOperations((prev) => prev.map((op) => (op.id === id ? { ...op, ...updates } : op)));
       console.log('[App] Operation updated successfully');
+      return true;
     },
     [user, operations, saveLocalData]
   );
@@ -526,11 +528,12 @@ export const [AppProvider, useApp] = createContextHook(() => {
         setExpenses(newExpenses);
         await saveLocalData(undefined, undefined, newExpenses);
         console.log('[App] Expense updated locally');
-        return;
+        return true;
       }
 
       console.log('[App] Updating expense:', id);
       const dbUpdates: Record<string, unknown> = {};
+      if (updates.operationId !== undefined) dbUpdates.operation_id = updates.operationId;
       if (updates.description !== undefined) dbUpdates.description = updates.description;
       if (updates.supplier !== undefined) dbUpdates.supplier = updates.supplier;
       if (updates.category !== undefined) dbUpdates.category = updates.category;
@@ -544,16 +547,20 @@ export const [AppProvider, useApp] = createContextHook(() => {
       if (updates.verifiedBy !== undefined) dbUpdates.verified_by = updates.verifiedBy;
       if (updates.verificationNotes !== undefined)
         dbUpdates.verification_notes = updates.verificationNotes;
+      if (updates.isShared !== undefined) dbUpdates.is_shared = updates.isShared;
+      if (updates.allocations !== undefined)
+        dbUpdates.allocations = updates.allocations ? JSON.stringify(updates.allocations) : null;
 
       const { error } = await supabase.from('expenses').update(dbUpdates).eq('id', id);
 
       if (error) {
         console.log('[App] Error updating expense:', error);
-        return;
+        return false;
       }
 
       setExpenses((prev) => prev.map((exp) => (exp.id === id ? { ...exp, ...updates } : exp)));
       console.log('[App] Expense updated successfully');
+      return true;
     },
     [user, expenses, saveLocalData]
   );

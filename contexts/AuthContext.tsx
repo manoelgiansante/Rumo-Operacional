@@ -68,7 +68,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   // =====================================================
   const loadUserProfile = useCallback(async (userId: string) => {
     try {
-      const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+
+      if (error) {
+        console.log('[Auth] Profile not available (normal if table missing):', error.code);
+        return null;
+      }
 
       if (data) {
         setProfile(data);
@@ -76,7 +81,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       }
       return null;
     } catch {
-      console.log('[Auth] Error loading profile');
+      console.log('[Auth] Error loading profile - continuing without profile');
       return null;
     }
   }, []);

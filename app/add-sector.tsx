@@ -40,13 +40,13 @@ export default function AddSectorScreen() {
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(SECTOR_COLORS[0]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert('Erro', 'Informe o nome do setor');
       return;
     }
 
-    addSector({
+    const result = await addSector({
       name: name.trim(),
       description: description.trim() || 'Sem descrição',
       color: selectedColor,
@@ -54,7 +54,11 @@ export default function AddSectorScreen() {
       isActive: true,
     });
 
-    router.back();
+    if (result) {
+      router.back();
+    } else {
+      Alert.alert('Erro', 'Não foi possível salvar o setor. Tente novamente.');
+    }
   };
 
   return (

@@ -62,21 +62,44 @@ export default function ExpenseDetailScreen() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
+    // Suporta formato DD/MM/AAAA e ISO
+    if (dateString.includes('/')) {
+      const parts = dateString.split('/');
+      if (parts.length === 3) {
+        const [day, month, year] = parts;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+          });
+        }
+      }
+      return dateString;
+    }
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const parsedInvoiceValue = invoiceValue ? parseFloat(invoiceValue) : undefined;
 
-    updateExpense(expense.id, {
+    const result = await updateExpense(expense.id, {
       invoiceValue: parsedInvoiceValue,
       invoiceNumber: invoiceNumber || undefined,
       verificationNotes: notes || undefined,
     });
+
+    if (result === false) {
+      Alert.alert('Erro', 'Não foi possível salvar as alterações. Tente novamente.');
+      return;
+    }
 
     setIsEditing(false);
   };

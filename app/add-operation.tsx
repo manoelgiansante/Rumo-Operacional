@@ -39,7 +39,7 @@ export default function AddOperationScreen() {
 
   const { sectors } = useApp();
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert('Erro', 'Informe o nome da operação');
       return;
@@ -50,7 +50,7 @@ export default function AddOperationScreen() {
       return;
     }
 
-    addOperation({
+    const result = await addOperation({
       sectorId: selectedSectorId,
       name: name.trim(),
       description: description.trim() || 'Sem descrição',
@@ -59,7 +59,11 @@ export default function AddOperationScreen() {
       isActive: true,
     });
 
-    router.back();
+    if (result) {
+      router.back();
+    } else {
+      Alert.alert('Erro', 'Não foi possível salvar a operação. Tente novamente.');
+    }
   };
 
   if (!canAddOperation) {

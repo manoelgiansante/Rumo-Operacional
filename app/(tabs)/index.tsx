@@ -83,9 +83,15 @@ export default function DashboardScreen() {
   };
 
   const getOperationTotal = (operationId: string) => {
-    return expenses
-      .filter((e) => e.operationId === operationId)
-      .reduce((sum, e) => sum + e.agreedValue, 0);
+    return expenses.reduce((sum, e) => {
+      if (e.isShared && e.allocations) {
+        const allocation = e.allocations.find((a) => a.operationId === operationId);
+        if (allocation) return sum + allocation.value;
+        return sum;
+      }
+      if (e.operationId === operationId) return sum + e.agreedValue;
+      return sum;
+    }, 0);
   };
 
   return (
@@ -223,14 +229,21 @@ export default function DashboardScreen() {
 
                 return (
                   <View key={sector.id} style={styles.sectorCard}>
-                    <View style={styles.sectorHeader}>
+                    <TouchableOpacity
+                      style={styles.sectorHeader}
+                      activeOpacity={0.7}
+                      onPress={() => router.push(`/edit-sector?id=${sector.id}` as any)}
+                    >
                       <View style={[styles.sectorIndicator, { backgroundColor: sector.color }]} />
                       <View style={styles.sectorInfo}>
                         <Text style={styles.sectorName}>{sector.name}</Text>
                         <Text style={styles.sectorDescription}>{sector.description}</Text>
                       </View>
-                      <Text style={styles.sectorTotal}>{formatCurrency(sectorTotal)}</Text>
-                    </View>
+                      <View style={styles.sectorRight}>
+                        <Text style={styles.sectorTotal}>{formatCurrency(sectorTotal)}</Text>
+                        <ChevronRight size={14} color={colors.textMuted} strokeWidth={1.5} />
+                      </View>
+                    </TouchableOpacity>
 
                     {sectorOperations.filter((op) => op.isActive).length === 0 ? (
                       <TouchableOpacity
@@ -703,6 +716,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600' as const,
     color: colors.text,
+  },
+  sectorRight: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 4,
   },
   addOperationRow: {
     flexDirection: 'row' as const,

@@ -76,6 +76,8 @@ export type Database = {
           payment_date: string | null;
           verified_by: string | null;
           verification_notes: string | null;
+          is_shared: boolean;
+          allocations: string | null;
           user_id: string;
         };
         Insert: Omit<Database['public']['Tables']['expenses']['Row'], 'id' | 'created_at'>;

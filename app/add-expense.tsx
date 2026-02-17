@@ -83,7 +83,7 @@ export default function AddExpenseScreen() {
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!description.trim()) {
       Alert.alert('Erro', 'Informe a descrição do lançamento');
       return;
@@ -123,7 +123,7 @@ export default function AddExpenseScreen() {
       return;
     }
 
-    addExpense({
+    const result = await addExpense({
       operationId: primaryOperationId,
       description: description.trim(),
       supplier: supplier.trim() || 'Não informado',
@@ -137,7 +137,11 @@ export default function AddExpenseScreen() {
       allocations: isSharedExpense ? allocations : undefined,
     });
 
-    router.back();
+    if (result) {
+      router.back();
+    } else {
+      Alert.alert('Erro', 'Não foi possível salvar o lançamento. Tente novamente.');
+    }
   };
 
   const formatCurrency = (value: string) => {
@@ -156,6 +160,16 @@ export default function AddExpenseScreen() {
     } else {
       setAgreedValue('');
     }
+  };
+
+  const handleDateChange = (text: string) => {
+    let cleaned = text.replace(/\D/g, '');
+    if (cleaned.length > 8) cleaned = cleaned.substring(0, 8);
+    let formatted = '';
+    if (cleaned.length > 0) formatted = cleaned.substring(0, 2);
+    if (cleaned.length > 2) formatted += '/' + cleaned.substring(2, 4);
+    if (cleaned.length > 4) formatted += '/' + cleaned.substring(4, 8);
+    setDueDate(formatted);
   };
 
   const selectedOperationData = operations.find((op) => op.id === selectedOperation);
@@ -481,7 +495,7 @@ export default function AddExpenseScreen() {
             placeholder="DD/MM/AAAA"
             placeholderTextColor={colors.textMuted}
             value={dueDate}
-            onChangeText={setDueDate}
+            onChangeText={handleDateChange}
             keyboardType="numeric"
             maxLength={10}
           />

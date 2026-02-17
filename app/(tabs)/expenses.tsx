@@ -40,7 +40,13 @@ export default function ExpensesScreen() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
+    // Suporta formato DD/MM/AAAA e ISO
+    if (dateString.includes('/')) {
+      return dateString.substring(0, 5); // retorna DD/MM
+    }
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return date.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'short',
     });
