@@ -7,10 +7,10 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from './AuthContext';
 
 const STORAGE_KEYS = {
-  SUBSCRIPTION: '@agrofinance_subscription',
-  LOCAL_SECTORS: '@agrofinance_sectors',
-  LOCAL_OPERATIONS: '@agrofinance_operations',
-  LOCAL_EXPENSES: '@agrofinance_expenses',
+  SUBSCRIPTION: '@rumo_operacional_subscription',
+  LOCAL_SECTORS: '@rumo_operacional_sectors',
+  LOCAL_OPERATIONS: '@rumo_operacional_operations',
+  LOCAL_EXPENSES: '@rumo_operacional_expenses',
 };
 
 export const [AppProvider, useApp] = createContextHook(() => {

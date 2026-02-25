@@ -13,10 +13,10 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  Sparkles,
   ChevronRight,
   Bell,
   Shield,
-  HelpCircle,
   Star,
   LogOut,
   Trash2,
@@ -30,13 +30,15 @@ import {
   EyeOff,
   Leaf,
   BookOpen,
+  FileText,
+  UserX,
 } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
 
-const ONBOARDING_KEY = '@agrofinance_onboarding_completed';
+const ONBOARDING_KEY = '@rumo_operacional_onboarding_completed';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -392,39 +394,45 @@ export default function SettingsScreen() {
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() =>
-              Alert.alert(
-                'Central de Ajuda',
-                'Em breve você terá acesso a tutoriais, FAQs e suporte direto.\n\nPor enquanto, use o botão "Ver Tutorial" acima para aprender a usar o app.',
-                [{ text: 'Entendi', style: 'default' }]
-              )
-            }
-          >
-            <View style={styles.menuIcon}>
-              <HelpCircle size={18} color={colors.textSecondary} strokeWidth={1.5} />
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/chatbot' as any)}>
+            <View style={[styles.menuIcon, { backgroundColor: '#FFD700' + '20' }]}>
+              <Sparkles size={18} color="#FFD700" strokeWidth={1.5} />
             </View>
-            <Text style={styles.menuLabel}>Central de Ajuda</Text>
+            <Text style={styles.menuLabel}>Chat de Suporte</Text>
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() =>
-              Alert.alert(
-                'Política de Privacidade',
-                'Seus dados são armazenados de forma segura e criptografada.\n\n• Não compartilhamos seus dados com terceiros\n• Você pode exportar ou excluir seus dados a qualquer momento\n• Utilizamos criptografia de ponta a ponta\n\nPolítica completa em breve.',
-                [{ text: 'Entendi', style: 'default' }]
-              )
-            }
+            onPress={() => router.push('/privacy-policy' as any)}
           >
             <View style={styles.menuIcon}>
               <Shield size={18} color={colors.textSecondary} strokeWidth={1.5} />
             </View>
-            <Text style={styles.menuLabel}>Privacidade</Text>
+            <Text style={styles.menuLabel}>Política de Privacidade</Text>
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/terms' as any)}>
+            <View style={styles.menuIcon}>
+              <FileText size={18} color={colors.textSecondary} strokeWidth={1.5} />
+            </View>
+            <Text style={styles.menuLabel}>Termos de Uso</Text>
+            <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
+          </TouchableOpacity>
+
+          {isAuthenticated && (
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/exclusao-dados' as any)}
+            >
+              <View style={[styles.menuIcon, { backgroundColor: '#DC2626' + '15' }]}>
+                <UserX size={18} color="#DC2626" strokeWidth={1.5} />
+              </View>
+              <Text style={[styles.menuLabel, { color: '#DC2626' }]}>Excluir Conta</Text>
+              <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.5} />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.footer}>

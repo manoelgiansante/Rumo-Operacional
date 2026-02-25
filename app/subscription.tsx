@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -23,12 +25,12 @@ import {
 } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { STRIPE_PAYMENT_LINKS } from '@/constants/product-ids';
 
 export default function SubscriptionScreen() {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { isAuthenticated, isPremium, trialDaysRemaining, upgradeSubscription, needsPayment } =
-    useAuth();
+  const { isAuthenticated, isPremium, trialDaysRemaining, needsPayment } = useAuth();
 
   const daysLeft = trialDaysRemaining();
   const showPaymentRequired = needsPayment();
@@ -46,37 +48,37 @@ export default function SubscriptionScreen() {
       return;
     }
 
-    setIsProcessing(true);
-
-    // Simular processamento de pagamento
-    // TODO: Integrar com Stripe/Pix
-    setTimeout(async () => {
+    if (Platform.OS === 'web') {
+      // Web: Abre Stripe Payment Link diretamente
+      handleStripeCheckout();
+    } else {
+      // Mobile: Mostra opções (Stripe web ou futura IAP)
       Alert.alert(
-        '💳 Pagamento',
-        'Escolha a forma de pagamento:\n\n• PIX: R$ 49,90\n• Cartão: R$ 49,90/mês',
+        '💳 Assinar Premium',
+        'Você será redirecionado para o checkout seguro do Stripe.\n\nValor: R$ 49,90/mês\nAcesso a todos os apps Rumo.',
         [
-          { text: 'Cancelar', style: 'cancel', onPress: () => setIsProcessing(false) },
-          {
-            text: 'Pagar com PIX',
-            onPress: async () => {
-              // Simular pagamento aprovado
-              const success = await upgradeSubscription('premium');
-              setIsProcessing(false);
-
-              if (success) {
-                Alert.alert(
-                  '🎉 Parabéns!',
-                  'Sua assinatura Premium foi ativada!\n\nAgora você tem acesso completo a:\n• Rumo Operacional\n• Rumo Finance\n• Rumo Máquinas',
-                  [{ text: 'Começar', onPress: () => router.back() }]
-                );
-              } else {
-                Alert.alert('Erro', 'Falha ao processar pagamento. Tente novamente.');
-              }
-            },
-          },
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Continuar', onPress: () => handleStripeCheckout() },
         ]
       );
-    }, 1000);
+    }
+  };
+
+  const handleStripeCheckout = async () => {
+    setIsProcessing(true);
+    try {
+      const paymentUrl = STRIPE_PAYMENT_LINKS.monthly;
+      const supported = await Linking.canOpenURL(paymentUrl);
+      if (supported) {
+        await Linking.openURL(paymentUrl);
+      } else {
+        Alert.alert('Erro', 'Não foi possível abrir o link de pagamento. Tente novamente.');
+      }
+    } catch {
+      Alert.alert('Erro', 'Falha ao abrir checkout. Verifique sua conexão e tente novamente.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (

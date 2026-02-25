@@ -95,6 +95,10 @@ function RootLayoutNav() {
       <Stack.Screen name="expense-detail" options={{ presentation: 'card' }} />
       <Stack.Screen name="subscription" options={{ presentation: 'modal' }} />
       <Stack.Screen name="finance-integration" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="chatbot" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="privacy-policy" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="terms" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="exclusao-dados" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

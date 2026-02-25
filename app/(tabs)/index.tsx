@@ -20,7 +20,7 @@ import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
 
-const ONBOARDING_KEY = '@agrofinance_onboarding_completed';
+const ONBOARDING_KEY = '@rumo_operacional_onboarding_completed';
 
 export default function DashboardScreen() {
   const router = useRouter();
