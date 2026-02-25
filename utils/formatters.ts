@@ -112,7 +112,11 @@ export const parseDateFromInput = (dateString: string): string | null => {
     return null;
   }
 
-  return date.toISOString().split('T')[0];
+  // Formata manualmente para evitar problemas de timezone com toISOString()
+  const yy = String(year).padStart(4, '0');
+  const mm = String(month).padStart(2, '0');
+  const dd = String(day).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
 };
 
 /**

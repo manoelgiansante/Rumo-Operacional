@@ -27,9 +27,63 @@ import { colors } from '@/constants/colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { STRIPE_PAYMENT_LINKS } from '@/constants/product-ids';
 
+type PlanKey = 'basic' | 'pro' | 'provider' | 'enterprise';
+type BillingPeriod = 'monthly' | 'yearly';
+
+const PLAN_INFO: Record<
+  PlanKey,
+  { name: string; monthlyPrice: string; yearlyPrice: string; features: string[] }
+> = {
+  basic: {
+    name: 'Básico',
+    monthlyPrice: '79,00',
+    yearlyPrice: '787,00',
+    features: ['Até 3 setores', 'Lançamentos ilimitados', 'Relatórios básicos', 'Backup na nuvem'],
+  },
+  pro: {
+    name: 'Pro',
+    monthlyPrice: '249,00',
+    yearlyPrice: '2.480,00',
+    features: [
+      'Setores ilimitados',
+      'Relatórios avançados',
+      'Exportação PDF e Excel',
+      'Integração entre apps',
+      'Múltiplas fazendas',
+      'Suporte prioritário',
+    ],
+  },
+  provider: {
+    name: 'Prestador Pro',
+    monthlyPrice: '399,00',
+    yearlyPrice: '3.974,00',
+    features: [
+      'Tudo do Pro',
+      'Gestão de clientes',
+      'Agenda de serviços',
+      'Relatórios por cliente',
+      'Equipe ilimitada',
+    ],
+  },
+  enterprise: {
+    name: 'Enterprise',
+    monthlyPrice: '599,00',
+    yearlyPrice: '5.966,00',
+    features: [
+      'Tudo do Prestador Pro',
+      'API personalizada',
+      'Suporte dedicado',
+      'Dashboard multi-fazenda',
+      'SSO corporativo',
+    ],
+  },
+};
+
 export default function SubscriptionScreen() {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlanKey>('pro');
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
   const { isAuthenticated, isPremium, trialDaysRemaining, needsPayment } = useAuth();
 
   const daysLeft = trialDaysRemaining();
@@ -48,14 +102,16 @@ export default function SubscriptionScreen() {
       return;
     }
 
+    const plan = PLAN_INFO[selectedPlan];
+    const price =
+      billingPeriod === 'monthly' ? `R$ ${plan.monthlyPrice}/mês` : `R$ ${plan.yearlyPrice}/ano`;
+
     if (Platform.OS === 'web') {
-      // Web: Abre Stripe Payment Link diretamente
       handleStripeCheckout();
     } else {
-      // Mobile: Mostra opções (Stripe web ou futura IAP)
       Alert.alert(
-        '💳 Assinar Premium',
-        'Você será redirecionado para o checkout seguro do Stripe.\n\nValor: R$ 49,90/mês\nAcesso a todos os apps Rumo.',
+        '💳 Assinar ' + plan.name,
+        `Você será redirecionado para o checkout seguro do Stripe.\n\nValor: ${price}`,
         [
           { text: 'Cancelar', style: 'cancel' },
           { text: 'Continuar', onPress: () => handleStripeCheckout() },
@@ -67,7 +123,8 @@ export default function SubscriptionScreen() {
   const handleStripeCheckout = async () => {
     setIsProcessing(true);
     try {
-      const paymentUrl = STRIPE_PAYMENT_LINKS.monthly;
+      const linkKey = `${selectedPlan}_${billingPeriod}` as keyof typeof STRIPE_PAYMENT_LINKS;
+      const paymentUrl = STRIPE_PAYMENT_LINKS[linkKey];
       const supported = await Linking.canOpenURL(paymentUrl);
       if (supported) {
         await Linking.openURL(paymentUrl);
@@ -120,82 +177,109 @@ export default function SubscriptionScreen() {
             <Zap size={32} color={colors.accent} />
           </View>
           <Text style={styles.heroTitle}>Rumo Premium</Text>
-          <Text style={styles.heroSubtitle}>Uma assinatura, todos os apps integrados</Text>
+          <Text style={styles.heroSubtitle}>Escolha o plano ideal para sua operação</Text>
         </View>
 
-        {/* Card do Plano Único */}
-        <View style={[styles.planCard, styles.planCardPopular]}>
-          <View style={styles.popularBadge}>
-            <Star size={12} color={colors.textLight} />
-            <Text style={styles.popularText}>Acesso Total</Text>
-          </View>
-
-          <View style={styles.planHeader}>
-            <Text style={styles.planName}>Premium</Text>
-            <View style={styles.planPricing}>
-              <Text style={styles.planCurrency}>R$</Text>
-              <Text style={styles.planPrice}>49,90</Text>
-              <Text style={styles.planPeriod}>/mês</Text>
-            </View>
-          </View>
-
-          {/* Apps incluídos */}
-          <View style={styles.appsIncluded}>
-            <Text style={styles.appsTitle}>Apps incluídos:</Text>
-            <View style={styles.appsList}>
-              <View style={styles.appBadge}>
-                <Link2 size={12} color={colors.primary} />
-                <Text style={styles.appName}>Rumo Operacional</Text>
-              </View>
-              <View style={styles.appBadge}>
-                <Link2 size={12} color={colors.success} />
-                <Text style={styles.appName}>Rumo Finance</Text>
-              </View>
-              <View style={styles.appBadge}>
-                <Link2 size={12} color={colors.warning} />
-                <Text style={styles.appName}>Rumo Máquinas</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.planFeatures}>
-            {[
-              'Lançamentos ilimitados',
-              'Relatórios avançados',
-              'Exportação PDF e Excel',
-              'Integração entre apps',
-              'Múltiplas fazendas',
-              'Equipe ilimitada',
-              'Suporte prioritário',
-              'Backup na nuvem',
-            ].map((feature, idx) => (
-              <View key={idx} style={styles.featureRow}>
-                <View style={[styles.checkIcon, styles.checkIconPopular]}>
-                  <Check size={14} color={colors.primary} />
-                </View>
-                <Text style={styles.featureText}>{feature}</Text>
-              </View>
-            ))}
-          </View>
-
+        {/* Billing Toggle */}
+        <View style={styles.billingToggle}>
           <TouchableOpacity
-            style={[
-              styles.planButton,
-              styles.planButtonPopular,
-              (isPremium || isProcessing) && styles.planButtonDisabled,
-            ]}
-            onPress={handleSubscribe}
-            disabled={isPremium || isProcessing}
+            style={[styles.toggleBtn, billingPeriod === 'monthly' && styles.toggleBtnActive]}
+            onPress={() => setBillingPeriod('monthly')}
           >
-            {isProcessing ? (
-              <ActivityIndicator color={colors.textLight} size="small" />
-            ) : (
-              <Text style={[styles.planButtonText, styles.planButtonTextPopular]}>
-                {isPremium ? 'Assinatura Ativa ✓' : 'Assinar Agora'}
-              </Text>
-            )}
+            <Text
+              style={[
+                styles.toggleBtnText,
+                billingPeriod === 'monthly' && styles.toggleBtnTextActive,
+              ]}
+            >
+              Mensal
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.toggleBtn, billingPeriod === 'yearly' && styles.toggleBtnActive]}
+            onPress={() => setBillingPeriod('yearly')}
+          >
+            <Text
+              style={[
+                styles.toggleBtnText,
+                billingPeriod === 'yearly' && styles.toggleBtnTextActive,
+              ]}
+            >
+              Anual 💰
+            </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Plan Cards */}
+        {(Object.keys(PLAN_INFO) as PlanKey[]).map((planKey) => {
+          const plan = PLAN_INFO[planKey];
+          const isSelected = selectedPlan === planKey;
+          const isPopular = planKey === 'pro';
+          const displayPrice = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+          const periodLabel = billingPeriod === 'monthly' ? '/mês' : '/ano';
+
+          return (
+            <TouchableOpacity
+              key={planKey}
+              style={[
+                styles.planCard,
+                isSelected && styles.planCardPopular,
+                !isSelected && styles.planCardUnselected,
+              ]}
+              onPress={() => setSelectedPlan(planKey)}
+              activeOpacity={0.7}
+            >
+              {isPopular && (
+                <View style={styles.popularBadge}>
+                  <Star size={12} color={colors.textLight} />
+                  <Text style={styles.popularText}>Mais Popular</Text>
+                </View>
+              )}
+
+              <View style={styles.planHeader}>
+                <Text style={styles.planName}>{plan.name}</Text>
+                <View style={styles.planPricing}>
+                  <Text style={styles.planCurrency}>R$</Text>
+                  <Text style={[styles.planPrice, isSelected && { color: colors.primary }]}>
+                    {displayPrice}
+                  </Text>
+                  <Text style={styles.planPeriod}>{periodLabel}</Text>
+                </View>
+              </View>
+
+              <View style={styles.planFeatures}>
+                {plan.features.map((feature, idx) => (
+                  <View key={idx} style={styles.featureRow}>
+                    <View style={[styles.checkIcon, isSelected && styles.checkIconPopular]}>
+                      <Check size={14} color={isSelected ? colors.primary : colors.success} />
+                    </View>
+                    <Text style={styles.featureText}>{feature}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {isSelected && (
+                <TouchableOpacity
+                  style={[
+                    styles.planButton,
+                    styles.planButtonPopular,
+                    (isPremium || isProcessing) && styles.planButtonDisabled,
+                  ]}
+                  onPress={handleSubscribe}
+                  disabled={isPremium || isProcessing}
+                >
+                  {isProcessing ? (
+                    <ActivityIndicator color={colors.textLight} size="small" />
+                  ) : (
+                    <Text style={[styles.planButtonText, styles.planButtonTextPopular]}>
+                      {isPremium ? 'Assinatura Ativa ✓' : 'Assinar Agora'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          );
+        })}
 
         {/* Benefícios */}
         <View style={styles.benefitsSection}>
@@ -256,8 +340,8 @@ export default function SubscriptionScreen() {
           <View style={styles.faqItem}>
             <Text style={styles.faqQuestion}>A assinatura vale para todos os apps?</Text>
             <Text style={styles.faqAnswer}>
-              Sim! Com uma única assinatura de R$49,90/mês você tem acesso completo ao Rumo
-              Operacional, Rumo Finance e Rumo Máquinas.
+              Sim! Sua assinatura dá acesso ao ecossistema completo: Rumo Operacional, Rumo Finance
+              e Rumo Máquinas.
             </Text>
           </View>
 
@@ -354,6 +438,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 4,
+  },
+  planCardUnselected: {
+    opacity: 0.7,
+  },
+  billingToggle: {
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceAlt,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 12,
+    padding: 4,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  toggleBtnActive: {
+    backgroundColor: colors.primary,
+  },
+  toggleBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  toggleBtnTextActive: {
+    color: colors.textLight,
   },
   popularBadge: {
     position: 'absolute',
