@@ -16,6 +16,7 @@ import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 import { expenseCategories } from '@/mocks/data';
 import { ExpenseAllocation, PaymentMethod } from '@/types';
+import { formatCurrencyInput, parseCurrencyInput } from '@/utils/formatters';
 
 interface OperationAllocation {
   operationId: string;
@@ -38,7 +39,7 @@ export default function AddExpenseScreen() {
 
   const [description, setDescription] = useState('');
   const [supplier, setSupplier] = useState('');
-  const [agreedValue, setAgreedValue] = useState('');
+  const [rawCents, setRawCents] = useState('');
   const [selectedOperation, setSelectedOperation] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [dueDate, setDueDate] = useState('');
@@ -56,14 +57,15 @@ export default function AddExpenseScreen() {
     return selectedOperations.reduce((sum, op) => sum + op.percentage, 0);
   }, [selectedOperations]);
 
+  const parsedValue = useMemo(() => parseCurrencyInput(rawCents) || 0, [rawCents]);
+
   const allocations: ExpenseAllocation[] = useMemo(() => {
-    const value = parseFloat(agreedValue) || 0;
     return selectedOperations.map((op) => ({
       operationId: op.operationId,
       percentage: op.percentage,
-      value: (value * op.percentage) / 100,
+      value: (parsedValue * op.percentage) / 100,
     }));
-  }, [selectedOperations, agreedValue]);
+  }, [selectedOperations, parsedValue]);
 
   const toggleOperationSelection = (operationId: string) => {
     const existing = selectedOperations.find((op) => op.operationId === operationId);
@@ -117,7 +119,7 @@ export default function AddExpenseScreen() {
       }
     }
 
-    if (!agreedValue || parseFloat(agreedValue) <= 0) {
+    if (!rawCents || parsedValue <= 0) {
       Alert.alert('Erro', 'Informe um valor válido');
       return;
     }
@@ -143,7 +145,6 @@ export default function AddExpenseScreen() {
         : new Date().toISOString().split('T')[0];
 
     const now = new Date().toISOString();
-    const parsedValue = parseFloat(agreedValue);
 
     const result = await addExpense({
       operationId: primaryOperationId,
@@ -170,22 +171,9 @@ export default function AddExpenseScreen() {
     }
   };
 
-  const formatCurrency = (value: string) => {
-    const number = value.replace(/\D/g, '');
-    const formatted = (parseInt(number) / 100).toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-    return formatted;
-  };
-
   const handleValueChange = (text: string) => {
-    const numbers = text.replace(/\D/g, '');
-    if (numbers) {
-      setAgreedValue((parseInt(numbers) / 100).toString());
-    } else {
-      setAgreedValue('');
-    }
+    const digits = text.replace(/\D/g, '');
+    setRawCents(digits);
   };
 
   const handleDateChange = (text: string) => {
@@ -200,7 +188,7 @@ export default function AddExpenseScreen() {
 
   const selectedOperationData = operations.find((op) => op.id === selectedOperation);
 
-  const hasUnsavedData = description.trim() || supplier.trim() || agreedValue || notes.trim();
+  const hasUnsavedData = description.trim() || supplier.trim() || rawCents || notes.trim();
 
   const handleClose = () => {
     if (hasUnsavedData) {
@@ -397,8 +385,7 @@ export default function AddExpenseScreen() {
                 <Text style={styles.allocationTitle}>Distribuição do Rateio</Text>
                 {selectedOperations.map((allocation) => {
                   const op = operations.find((o) => o.id === allocation.operationId);
-                  const value = parseFloat(agreedValue) || 0;
-                  const allocatedValue = (value * allocation.percentage) / 100;
+                  const allocatedValue = (parsedValue * allocation.percentage) / 100;
 
                   return (
                     <View key={allocation.operationId} style={styles.allocationRow}>
@@ -508,7 +495,7 @@ export default function AddExpenseScreen() {
               placeholder="0,00"
               placeholderTextColor={colors.textMuted}
               keyboardType="numeric"
-              value={agreedValue ? formatCurrency((parseFloat(agreedValue) * 100).toString()) : ''}
+              value={formatCurrencyInput(rawCents)}
               onChangeText={handleValueChange}
             />
           </View>
