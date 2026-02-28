@@ -8,10 +8,23 @@ export interface Sector {
   createdAt: string;
 }
 
+export type OperationType =
+  | 'plantio'
+  | 'colheita'
+  | 'manejo'
+  | 'preparo'
+  | 'adubacao'
+  | 'irrigacao'
+  | 'transporte'
+  | 'manutencao'
+  | 'administrativo'
+  | 'outro';
+
 export interface Operation {
   id: string;
   sectorId: string;
   name: string;
+  type: OperationType;
   description: string;
   color: string;
   icon: string;
@@ -25,6 +38,15 @@ export interface ExpenseAllocation {
   value: number;
 }
 
+export type PaymentMethod =
+  | 'boleto'
+  | 'pix'
+  | 'cartao'
+  | 'transferencia'
+  | 'cheque'
+  | 'dinheiro'
+  | 'outro';
+
 export interface Expense {
   id: string;
   operationId: string;
@@ -32,9 +54,13 @@ export interface Expense {
   supplier: string;
   category: string;
   agreedValue: number;
+  negotiatedValue: number;
   invoiceValue?: number;
   invoiceNumber?: string;
+  date: string;
   dueDate: string;
+  competence: string;
+  paymentMethod: PaymentMethod;
   createdAt: string;
   createdBy: string;
   status: ExpenseStatus;

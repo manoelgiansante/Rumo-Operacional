@@ -212,6 +212,28 @@ export default function ExpenseDetailScreen() {
             <FileText size={16} color={colors.textMuted} />
             <Text style={styles.infoText}>Categoria: {expense.category}</Text>
           </View>
+
+          {expense.paymentMethod && (
+            <View style={styles.infoRow}>
+              <FileText size={16} color={colors.textMuted} />
+              <Text style={styles.infoText}>
+                Pagamento:{' '}
+                {expense.paymentMethod === 'boleto'
+                  ? 'Boleto'
+                  : expense.paymentMethod === 'pix'
+                    ? 'PIX'
+                    : expense.paymentMethod === 'cartao'
+                      ? 'Cartão'
+                      : expense.paymentMethod === 'transferencia'
+                        ? 'Transferência'
+                        : expense.paymentMethod === 'cheque'
+                          ? 'Cheque'
+                          : expense.paymentMethod === 'dinheiro'
+                            ? 'Dinheiro'
+                            : 'Outro'}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.valuesCard}>
@@ -221,6 +243,14 @@ export default function ExpenseDetailScreen() {
             <Text style={styles.valueLabel}>Valor Combinado</Text>
             <Text style={styles.valueAmount}>{formatCurrency(expense.agreedValue)}</Text>
           </View>
+
+          {expense.negotiatedValue !== undefined &&
+            expense.negotiatedValue !== expense.agreedValue && (
+              <View style={styles.valueRow}>
+                <Text style={styles.valueLabel}>Valor Negociado</Text>
+                <Text style={styles.valueAmount}>{formatCurrency(expense.negotiatedValue)}</Text>
+              </View>
+            )}
 
           {isEditing ? (
             <View style={styles.editField}>

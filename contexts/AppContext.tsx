@@ -117,6 +117,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
           id: o.id,
           sectorId: o.sector_id,
           name: o.name,
+          type: (o.type || 'outro') as Operation['type'],
           description: o.description || '',
           color: o.color,
           icon: o.icon,
@@ -143,9 +144,13 @@ export const [AppProvider, useApp] = createContextHook(() => {
           supplier: e.supplier,
           category: e.category,
           agreedValue: Number(e.agreed_value),
+          negotiatedValue: Number(e.negotiated_value),
           invoiceValue: e.invoice_value ? Number(e.invoice_value) : undefined,
           invoiceNumber: e.invoice_number || undefined,
+          date: e.date,
           dueDate: e.due_date,
+          competence: e.competence,
+          paymentMethod: (e.payment_method || 'outro') as Expense['paymentMethod'],
           createdAt: e.created_at,
           createdBy: e.created_by,
           status: e.status as Expense['status'],
@@ -352,6 +357,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
           user_id: user.id,
           sector_id: operation.sectorId,
           name: operation.name,
+          type: operation.type || 'outro',
           description: operation.description,
           color: operation.color,
           icon: operation.icon,
@@ -369,6 +375,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
         id: data.id,
         sectorId: data.sector_id,
         name: data.name,
+        type: (data.type || 'outro') as Operation['type'],
         description: data.description || '',
         color: data.color,
         icon: data.icon,
@@ -402,6 +409,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
       if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
       if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
       if (updates.sectorId !== undefined) dbUpdates.sector_id = updates.sectorId;
+      if (updates.type !== undefined) dbUpdates.type = updates.type;
 
       const { error } = await supabase.from('operations').update(dbUpdates).eq('id', id);
 
@@ -468,9 +476,13 @@ export const [AppProvider, useApp] = createContextHook(() => {
           supplier: expense.supplier,
           category: expense.category,
           agreed_value: expense.agreedValue,
+          negotiated_value: expense.negotiatedValue,
           invoice_value: expense.invoiceValue || null,
           invoice_number: expense.invoiceNumber || null,
+          date: expense.date,
           due_date: expense.dueDate,
+          competence: expense.competence,
+          payment_method: expense.paymentMethod,
           created_by: expense.createdBy,
           status: expense.status,
           notes: expense.notes || null,
@@ -495,9 +507,13 @@ export const [AppProvider, useApp] = createContextHook(() => {
         supplier: data.supplier,
         category: data.category,
         agreedValue: Number(data.agreed_value),
+        negotiatedValue: Number(data.negotiated_value),
         invoiceValue: data.invoice_value ? Number(data.invoice_value) : undefined,
         invoiceNumber: data.invoice_number || undefined,
+        date: data.date,
         dueDate: data.due_date,
+        competence: data.competence,
+        paymentMethod: (data.payment_method || 'outro') as Expense['paymentMethod'],
         createdAt: data.created_at,
         createdBy: data.created_by,
         status: data.status as Expense['status'],
@@ -538,9 +554,14 @@ export const [AppProvider, useApp] = createContextHook(() => {
       if (updates.supplier !== undefined) dbUpdates.supplier = updates.supplier;
       if (updates.category !== undefined) dbUpdates.category = updates.category;
       if (updates.agreedValue !== undefined) dbUpdates.agreed_value = updates.agreedValue;
+      if (updates.negotiatedValue !== undefined)
+        dbUpdates.negotiated_value = updates.negotiatedValue;
       if (updates.invoiceValue !== undefined) dbUpdates.invoice_value = updates.invoiceValue;
       if (updates.invoiceNumber !== undefined) dbUpdates.invoice_number = updates.invoiceNumber;
+      if (updates.date !== undefined) dbUpdates.date = updates.date;
       if (updates.dueDate !== undefined) dbUpdates.due_date = updates.dueDate;
+      if (updates.competence !== undefined) dbUpdates.competence = updates.competence;
+      if (updates.paymentMethod !== undefined) dbUpdates.payment_method = updates.paymentMethod;
       if (updates.status !== undefined) dbUpdates.status = updates.status;
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
       if (updates.paymentDate !== undefined) dbUpdates.payment_date = updates.paymentDate;

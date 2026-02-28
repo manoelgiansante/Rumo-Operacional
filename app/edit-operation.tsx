@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Palette, ChevronDown } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
+import { OperationType } from '@/types';
 
 const COLORS = [
   '#2E7D32',
@@ -23,6 +24,19 @@ const COLORS = [
   '#00838F',
   '#4527A0',
   '#AD1457',
+];
+
+const OPERATION_TYPES: { value: OperationType; label: string }[] = [
+  { value: 'plantio', label: 'Plantio' },
+  { value: 'colheita', label: 'Colheita' },
+  { value: 'manejo', label: 'Manejo' },
+  { value: 'preparo', label: 'Preparo de Solo' },
+  { value: 'adubacao', label: 'Adubação' },
+  { value: 'irrigacao', label: 'Irrigação' },
+  { value: 'transporte', label: 'Transporte' },
+  { value: 'manutencao', label: 'Manutenção' },
+  { value: 'administrativo', label: 'Administrativo' },
+  { value: 'outro', label: 'Outro' },
 ];
 
 export default function EditOperationScreen() {
@@ -36,6 +50,8 @@ export default function EditOperationScreen() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
+  const [selectedType, setSelectedType] = useState<OperationType>('outro');
+  const [showTypePicker, setShowTypePicker] = useState(false);
   const [selectedSectorId, setSelectedSectorId] = useState<string>('');
   const [showSectorPicker, setShowSectorPicker] = useState(false);
 
@@ -44,6 +60,7 @@ export default function EditOperationScreen() {
       setName(operation.name);
       setDescription(operation.description || '');
       setSelectedColor(operation.color);
+      setSelectedType(operation.type || 'outro');
       setSelectedSectorId(operation.sectorId || '');
     }
   }, [operation]);
@@ -65,6 +82,7 @@ export default function EditOperationScreen() {
       name: name.trim(),
       description: description.trim(),
       color: selectedColor,
+      type: selectedType,
       sectorId: selectedSectorId || '',
     });
 
@@ -131,7 +149,10 @@ export default function EditOperationScreen() {
             <Text style={styles.label}>Setor (opcional)</Text>
             <TouchableOpacity
               style={styles.pickerButton}
-              onPress={() => setShowSectorPicker(!showSectorPicker)}
+              onPress={() => {
+                setShowSectorPicker(!showSectorPicker);
+                setShowTypePicker(false);
+              }}
             >
               {selectedSector ? (
                 <View style={styles.selectedSector}>
@@ -199,6 +220,48 @@ export default function EditOperationScreen() {
                     ))}
                   </>
                 )}
+              </View>
+            )}
+          </View>
+
+          <View style={styles.inputGroup}>
+            <View style={styles.labelRow}>
+              <Palette size={16} color={colors.textMuted} strokeWidth={1.5} />
+              <Text style={styles.label}>Tipo de Operação</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.pickerButton}
+              onPress={() => {
+                setShowTypePicker(!showTypePicker);
+                setShowSectorPicker(false);
+              }}
+            >
+              <Text style={styles.selectedSectorText}>
+                {OPERATION_TYPES.find((t) => t.value === selectedType)?.label || 'Outro'}
+              </Text>
+              <ChevronDown size={18} color={colors.textMuted} strokeWidth={1.5} />
+            </TouchableOpacity>
+            {showTypePicker && (
+              <View style={styles.sectorList}>
+                {OPERATION_TYPES.map((type) => (
+                  <TouchableOpacity
+                    key={type.value}
+                    style={styles.sectorOption}
+                    onPress={() => {
+                      setSelectedType(type.value);
+                      setShowTypePicker(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.sectorOptionText,
+                        selectedType === type.value && styles.sectorOptionSelected,
+                      ]}
+                    >
+                      {type.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             )}
           </View>

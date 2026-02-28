@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { X, Check, Lock, Crown, ChevronDown } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
+import { OperationType } from '@/types';
 
 const OPERATION_COLORS = [
   '#8B4513',
@@ -27,6 +28,19 @@ const OPERATION_COLORS = [
   '#3F51B5',
 ];
 
+const OPERATION_TYPES: { value: OperationType; label: string }[] = [
+  { value: 'plantio', label: 'Plantio' },
+  { value: 'colheita', label: 'Colheita' },
+  { value: 'manejo', label: 'Manejo' },
+  { value: 'preparo', label: 'Preparo de Solo' },
+  { value: 'adubacao', label: 'Adubação' },
+  { value: 'irrigacao', label: 'Irrigação' },
+  { value: 'transporte', label: 'Transporte' },
+  { value: 'manutencao', label: 'Manutenção' },
+  { value: 'administrativo', label: 'Administrativo' },
+  { value: 'outro', label: 'Outro' },
+];
+
 export default function AddOperationScreen() {
   const router = useRouter();
   const { addOperation, canAddOperation, currentPlan } = useApp();
@@ -34,6 +48,8 @@ export default function AddOperationScreen() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(OPERATION_COLORS[0]);
+  const [selectedType, setSelectedType] = useState<OperationType>('outro');
+  const [showTypePicker, setShowTypePicker] = useState(false);
   const [selectedSectorId, setSelectedSectorId] = useState<string>('');
   const [showSectorPicker, setShowSectorPicker] = useState(false);
 
@@ -53,6 +69,7 @@ export default function AddOperationScreen() {
     const result = await addOperation({
       sectorId: selectedSectorId,
       name: name.trim(),
+      type: selectedType,
       description: description.trim() || 'Sem descrição',
       color: selectedColor,
       icon: 'Leaf',
@@ -206,6 +223,48 @@ export default function AddOperationScreen() {
             numberOfLines={3}
             textAlignVertical="top"
           />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Tipo de Operação *</Text>
+          <TouchableOpacity
+            style={styles.selectInput}
+            onPress={() => {
+              setShowTypePicker(!showTypePicker);
+              setShowSectorPicker(false);
+            }}
+          >
+            <Text style={styles.selectText}>
+              {OPERATION_TYPES.find((t) => t.value === selectedType)?.label || 'Outro'}
+            </Text>
+            <ChevronDown size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+          {showTypePicker && (
+            <View style={styles.pickerDropdown}>
+              {OPERATION_TYPES.map((type) => (
+                <TouchableOpacity
+                  key={type.value}
+                  style={[
+                    styles.pickerItem,
+                    selectedType === type.value && styles.pickerItemSelected,
+                  ]}
+                  onPress={() => {
+                    setSelectedType(type.value);
+                    setShowTypePicker(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.pickerItemText,
+                      selectedType === type.value && styles.pickerItemTextSelected,
+                    ]}
+                  >
+                    {type.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.field}>

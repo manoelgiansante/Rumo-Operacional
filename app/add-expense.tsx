@@ -15,12 +15,22 @@ import { X, ChevronDown, Check, Split, Percent } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 import { expenseCategories } from '@/mocks/data';
-import { ExpenseAllocation } from '@/types';
+import { ExpenseAllocation, PaymentMethod } from '@/types';
 
 interface OperationAllocation {
   operationId: string;
   percentage: number;
 }
+
+const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: 'boleto', label: 'Boleto' },
+  { value: 'pix', label: 'PIX' },
+  { value: 'cartao', label: 'Cartão' },
+  { value: 'transferencia', label: 'Transferência' },
+  { value: 'cheque', label: 'Cheque' },
+  { value: 'dinheiro', label: 'Dinheiro' },
+  { value: 'outro', label: 'Outro' },
+];
 
 export default function AddExpenseScreen() {
   const router = useRouter();
@@ -33,6 +43,8 @@ export default function AddExpenseScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('boleto');
+  const [showPaymentPicker, setShowPaymentPicker] = useState(false);
   const [showOperationPicker, setShowOperationPicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
@@ -123,13 +135,27 @@ export default function AddExpenseScreen() {
       return;
     }
 
+    // Converter DD/MM/YYYY para ISO date (YYYY-MM-DD)
+    const dueDateParts = dueDate.split('/');
+    const isoDate =
+      dueDateParts.length === 3
+        ? `${dueDateParts[2]}-${dueDateParts[1]}-${dueDateParts[0]}`
+        : new Date().toISOString().split('T')[0];
+
+    const now = new Date().toISOString();
+    const parsedValue = parseFloat(agreedValue);
+
     const result = await addExpense({
       operationId: primaryOperationId,
       description: description.trim(),
       supplier: supplier.trim() || 'Não informado',
       category: selectedCategory || 'Outros',
-      agreedValue: parseFloat(agreedValue),
-      dueDate: dueDate,
+      agreedValue: parsedValue,
+      negotiatedValue: parsedValue,
+      date: isoDate,
+      dueDate: isoDate,
+      competence: now,
+      paymentMethod: paymentMethod,
       status: 'pending',
       createdBy: 'Usuário',
       notes: notes.trim() || undefined,
@@ -499,6 +525,43 @@ export default function AddExpenseScreen() {
             keyboardType="numeric"
             maxLength={10}
           />
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Forma de Pagamento *</Text>
+          <TouchableOpacity
+            style={styles.select}
+            onPress={() => {
+              setShowPaymentPicker(!showPaymentPicker);
+              setShowCategoryPicker(false);
+              setShowOperationPicker(false);
+            }}
+          >
+            <Text style={styles.selectText}>
+              {PAYMENT_METHODS.find((p) => p.value === paymentMethod)?.label || 'Boleto'}
+            </Text>
+            <ChevronDown size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+          {showPaymentPicker && (
+            <View style={styles.picker}>
+              {PAYMENT_METHODS.map((method) => (
+                <TouchableOpacity
+                  key={method.value}
+                  style={[
+                    styles.pickerItem,
+                    paymentMethod === method.value && { backgroundColor: colors.primaryLight },
+                  ]}
+                  onPress={() => {
+                    setPaymentMethod(method.value);
+                    setShowPaymentPicker(false);
+                  }}
+                >
+                  <Text style={styles.pickerText}>{method.label}</Text>
+                  {paymentMethod === method.value && <Check size={18} color={colors.primary} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.field}>

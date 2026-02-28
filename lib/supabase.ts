@@ -48,6 +48,7 @@ export type Database = {
           id: string;
           sector_id: string;
           name: string;
+          type: string;
           description: string;
           color: string;
           icon: string;
@@ -66,9 +67,13 @@ export type Database = {
           supplier: string;
           category: string;
           agreed_value: number;
+          negotiated_value: number;
           invoice_value: number | null;
           invoice_number: string | null;
+          date: string;
           due_date: string;
+          competence: string;
+          payment_method: string;
           created_at: string;
           created_by: string;
           status: string;
