@@ -14,6 +14,7 @@ import { CheckCircle2, AlertTriangle, Clock, ChevronRight } from 'lucide-react-n
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 import { Expense } from '@/types';
+import { formatCurrency } from '@/utils/formatters';
 
 type TabType = 'pending' | 'discrepancy' | 'verified';
 
@@ -42,10 +43,6 @@ export default function VerificationScreen() {
       case 'verified':
         return verifiedExpenses;
     }
-  };
-
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
   const handleVerify = (expense: Expense) => {

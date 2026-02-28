@@ -8,18 +8,27 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { useState, useCallback } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useState, useCallback, useEffect } from 'react';
 import { Search, Plus, Calendar } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
+import { formatCurrency, getStatusColor, getStatusLabel } from '@/utils/formatters';
 
 export default function ExpensesScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ operation?: string }>();
   const { expenses, operations, loadData } = useApp();
   const [search, setSearch] = useState('');
   const [selectedOperation, setSelectedOperation] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Auto-selecionar operação quando vindo do dashboard
+  useEffect(() => {
+    if (params.operation) {
+      setSelectedOperation(params.operation);
+    }
+  }, [params.operation]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -34,10 +43,6 @@ export default function ExpensesScreen() {
     const matchesOperation = !selectedOperation || expense.operationId === selectedOperation;
     return matchesSearch && matchesOperation;
   });
-
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   const formatDate = (dateString: string) => {
     // Suporta formato DD/MM/AAAA e ISO
@@ -181,36 +186,6 @@ export default function ExpensesScreen() {
       </ScrollView>
     </SafeAreaView>
   );
-}
-
-function getStatusColor(status: string): string {
-  switch (status) {
-    case 'pending':
-      return colors.warning;
-    case 'verified':
-      return colors.info;
-    case 'discrepancy':
-      return colors.error;
-    case 'paid':
-      return colors.success;
-    default:
-      return colors.textMuted;
-  }
-}
-
-function getStatusLabel(status: string): string {
-  switch (status) {
-    case 'pending':
-      return 'Pendente';
-    case 'verified':
-      return 'Verificado';
-    case 'discrepancy':
-      return 'Divergência';
-    case 'paid':
-      return 'Pago';
-    default:
-      return status;
-  }
 }
 
 const styles = StyleSheet.create({

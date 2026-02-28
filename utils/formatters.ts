@@ -161,3 +161,71 @@ export const formatDecimal = (value: number, decimals: number = 2): string => {
 export const formatPercent = (value: number, decimals: number = 1): string => {
   return `${(value * 100).toFixed(decimals)}%`;
 };
+
+// =====================================================
+// STATUS HELPERS - Compartilhados entre telas
+// =====================================================
+
+/**
+ * Retorna a cor associada ao status de uma despesa
+ * @param status - Status da despesa
+ * @returns Cor hexadecimal
+ */
+export const getStatusColor = (status: string): string => {
+  switch (status) {
+    case 'pending':
+      return '#B8860B'; // colors.warning
+    case 'verified':
+      return '#4A6A8B'; // colors.info
+    case 'discrepancy':
+      return '#8B4049'; // colors.error
+    case 'paid':
+      return '#4A7C59'; // colors.success
+    default:
+      return '#8E8E8E'; // colors.textMuted
+  }
+};
+
+/**
+ * Retorna o label em português para o status de uma despesa
+ * @param status - Status da despesa
+ * @returns Label traduzido
+ */
+export const getStatusLabel = (status: string): string => {
+  switch (status) {
+    case 'pending':
+      return 'Pendente';
+    case 'verified':
+      return 'Verificado';
+    case 'discrepancy':
+      return 'Divergência';
+    case 'paid':
+      return 'Pago';
+    default:
+      return status;
+  }
+};
+
+/**
+ * Retorna o label em português para o método de pagamento
+ * @param method - Método de pagamento
+ * @returns Label traduzido
+ */
+export const getPaymentMethodLabel = (method: string): string => {
+  switch (method) {
+    case 'boleto':
+      return 'Boleto';
+    case 'pix':
+      return 'PIX';
+    case 'cartao':
+      return 'Cartão';
+    case 'transferencia':
+      return 'Transferência';
+    case 'cheque':
+      return 'Cheque';
+    case 'dinheiro':
+      return 'Dinheiro';
+    default:
+      return 'Outro';
+  }
+};

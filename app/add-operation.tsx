@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -131,163 +133,168 @@ export default function AddOperationScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.preview}>
-          <View style={[styles.previewIcon, { backgroundColor: selectedColor + '20' }]}>
-            <View style={[styles.previewDot, { backgroundColor: selectedColor }]} />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.preview}>
+            <View style={[styles.previewIcon, { backgroundColor: selectedColor + '20' }]}>
+              <View style={[styles.previewDot, { backgroundColor: selectedColor }]} />
+            </View>
+            <Text style={styles.previewName}>{name || 'Nome da Operação'}</Text>
+            <Text style={styles.previewDescription}>{description || 'Descrição'}</Text>
           </View>
-          <Text style={styles.previewName}>{name || 'Nome da Operação'}</Text>
-          <Text style={styles.previewDescription}>{description || 'Descrição'}</Text>
-        </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Setor *</Text>
-          <TouchableOpacity
-            style={styles.selectInput}
-            onPress={() => setShowSectorPicker(!showSectorPicker)}
-          >
-            <Text style={selectedSectorId ? styles.selectText : styles.selectPlaceholder}>
-              {selectedSectorId
-                ? sectors.find((s) => s.id === selectedSectorId)?.name
-                : 'Selecione um setor'}
-            </Text>
-            <ChevronDown size={20} color={colors.textMuted} />
-          </TouchableOpacity>
-          {showSectorPicker && (
-            <View style={styles.pickerDropdown}>
-              {sectors.length === 0 ? (
-                <View style={styles.emptyPicker}>
-                  <Text style={styles.emptyPickerText}>Nenhum setor cadastrado</Text>
-                  <Text style={styles.emptyPickerSubtext}>
-                    Crie um setor antes de adicionar operações
-                  </Text>
+          <View style={styles.field}>
+            <Text style={styles.label}>Setor *</Text>
+            <TouchableOpacity
+              style={styles.selectInput}
+              onPress={() => setShowSectorPicker(!showSectorPicker)}
+            >
+              <Text style={selectedSectorId ? styles.selectText : styles.selectPlaceholder}>
+                {selectedSectorId
+                  ? sectors.find((s) => s.id === selectedSectorId)?.name
+                  : 'Selecione um setor'}
+              </Text>
+              <ChevronDown size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+            {showSectorPicker && (
+              <View style={styles.pickerDropdown}>
+                {sectors.length === 0 ? (
+                  <View style={styles.emptyPicker}>
+                    <Text style={styles.emptyPickerText}>Nenhum setor cadastrado</Text>
+                    <Text style={styles.emptyPickerSubtext}>
+                      Crie um setor antes de adicionar operações
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.emptyPickerButton}
+                      onPress={() => {
+                        setShowSectorPicker(false);
+                        router.push('/add-sector');
+                      }}
+                    >
+                      <Text style={styles.emptyPickerButtonText}>Criar setor</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  sectors.map((sector) => (
+                    <TouchableOpacity
+                      key={sector.id}
+                      style={[
+                        styles.pickerItem,
+                        selectedSectorId === sector.id && styles.pickerItemSelected,
+                      ]}
+                      onPress={() => {
+                        setSelectedSectorId(sector.id);
+                        setShowSectorPicker(false);
+                      }}
+                    >
+                      <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
+                      <Text
+                        style={[
+                          styles.pickerItemText,
+                          selectedSectorId === sector.id && styles.pickerItemTextSelected,
+                        ]}
+                      >
+                        {sector.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))
+                )}
+              </View>
+            )}
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Nome da Operação *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex: Confinamento, Plantio de Cana..."
+              placeholderTextColor={colors.textMuted}
+              value={name}
+              onChangeText={setName}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Descrição</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Descreva brevemente esta operação..."
+              placeholderTextColor={colors.textMuted}
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Tipo de Operação *</Text>
+            <TouchableOpacity
+              style={styles.selectInput}
+              onPress={() => {
+                setShowTypePicker(!showTypePicker);
+                setShowSectorPicker(false);
+              }}
+            >
+              <Text style={styles.selectText}>
+                {OPERATION_TYPES.find((t) => t.value === selectedType)?.label || 'Outro'}
+              </Text>
+              <ChevronDown size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+            {showTypePicker && (
+              <View style={styles.pickerDropdown}>
+                {OPERATION_TYPES.map((type) => (
                   <TouchableOpacity
-                    style={styles.emptyPickerButton}
-                    onPress={() => {
-                      setShowSectorPicker(false);
-                      router.push('/add-sector');
-                    }}
-                  >
-                    <Text style={styles.emptyPickerButtonText}>Criar setor</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                sectors.map((sector) => (
-                  <TouchableOpacity
-                    key={sector.id}
+                    key={type.value}
                     style={[
                       styles.pickerItem,
-                      selectedSectorId === sector.id && styles.pickerItemSelected,
+                      selectedType === type.value && styles.pickerItemSelected,
                     ]}
                     onPress={() => {
-                      setSelectedSectorId(sector.id);
-                      setShowSectorPicker(false);
+                      setSelectedType(type.value);
+                      setShowTypePicker(false);
                     }}
                   >
-                    <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
                     <Text
                       style={[
                         styles.pickerItemText,
-                        selectedSectorId === sector.id && styles.pickerItemTextSelected,
+                        selectedType === type.value && styles.pickerItemTextSelected,
                       ]}
                     >
-                      {sector.name}
+                      {type.label}
                     </Text>
                   </TouchableOpacity>
-                ))
-              )}
-            </View>
-          )}
-        </View>
+                ))}
+              </View>
+            )}
+          </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Nome da Operação *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex: Confinamento, Plantio de Cana..."
-            placeholderTextColor={colors.textMuted}
-            value={name}
-            onChangeText={setName}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Descrição</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Descreva brevemente esta operação..."
-            placeholderTextColor={colors.textMuted}
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={3}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Tipo de Operação *</Text>
-          <TouchableOpacity
-            style={styles.selectInput}
-            onPress={() => {
-              setShowTypePicker(!showTypePicker);
-              setShowSectorPicker(false);
-            }}
-          >
-            <Text style={styles.selectText}>
-              {OPERATION_TYPES.find((t) => t.value === selectedType)?.label || 'Outro'}
-            </Text>
-            <ChevronDown size={20} color={colors.textMuted} />
-          </TouchableOpacity>
-          {showTypePicker && (
-            <View style={styles.pickerDropdown}>
-              {OPERATION_TYPES.map((type) => (
+          <View style={styles.field}>
+            <Text style={styles.label}>Cor de Identificação</Text>
+            <View style={styles.colorGrid}>
+              {OPERATION_COLORS.map((color) => (
                 <TouchableOpacity
-                  key={type.value}
+                  key={color}
                   style={[
-                    styles.pickerItem,
-                    selectedType === type.value && styles.pickerItemSelected,
+                    styles.colorItem,
+                    { backgroundColor: color },
+                    selectedColor === color && styles.colorItemSelected,
                   ]}
-                  onPress={() => {
-                    setSelectedType(type.value);
-                    setShowTypePicker(false);
-                  }}
+                  onPress={() => setSelectedColor(color)}
                 >
-                  <Text
-                    style={[
-                      styles.pickerItemText,
-                      selectedType === type.value && styles.pickerItemTextSelected,
-                    ]}
-                  >
-                    {type.label}
-                  </Text>
+                  {selectedColor === color && <Check size={18} color="#fff" />}
                 </TouchableOpacity>
               ))}
             </View>
-          )}
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Cor de Identificação</Text>
-          <View style={styles.colorGrid}>
-            {OPERATION_COLORS.map((color) => (
-              <TouchableOpacity
-                key={color}
-                style={[
-                  styles.colorItem,
-                  { backgroundColor: color },
-                  selectedColor === color && styles.colorItemSelected,
-                ]}
-                onPress={() => setSelectedColor(color)}
-              >
-                {selectedColor === color && <Check size={18} color="#fff" />}
-              </TouchableOpacity>
-            ))}
           </View>
-        </View>
 
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+          <View style={styles.bottomSpacing} />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
+import { formatCurrency } from '@/utils/formatters';
 
 export default function ReportsScreen() {
   const { expenses, operations, sectors, getOperationsBySector, loadData } = useApp();
@@ -124,10 +125,6 @@ export default function ReportsScreen() {
 
   const percentChange =
     prevMonthData > 0 ? ((monthlyData.totalMonth - prevMonthData) / prevMonthData) * 100 : 0;
-
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   const changeMonth = (direction: number) => {
     const newDate = new Date(selectedMonth);

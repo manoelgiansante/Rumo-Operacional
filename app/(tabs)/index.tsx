@@ -19,6 +19,7 @@ import {
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
 import OnboardingTutorial from '@/components/OnboardingTutorial';
+import { formatCurrency, getStatusColor, getStatusLabel } from '@/utils/formatters';
 
 const ONBOARDING_KEY = '@rumo_operacional_onboarding_completed';
 
@@ -77,10 +78,6 @@ export default function DashboardScreen() {
     .reduce((sum, e) => sum + e.agreedValue, 0);
 
   const discrepancies = expenses.filter((e) => e.status === 'discrepancy').length;
-
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   const getOperationTotal = (operationId: string) => {
     return expenses.reduce((sum, e) => {
@@ -367,36 +364,6 @@ export default function DashboardScreen() {
       </ScrollView>
     </SafeAreaView>
   );
-}
-
-function getStatusColor(status: string): string {
-  switch (status) {
-    case 'pending':
-      return colors.warning;
-    case 'verified':
-      return colors.info;
-    case 'discrepancy':
-      return colors.error;
-    case 'paid':
-      return colors.success;
-    default:
-      return colors.textMuted;
-  }
-}
-
-function getStatusLabel(status: string): string {
-  switch (status) {
-    case 'pending':
-      return 'Pendente';
-    case 'verified':
-      return 'Verificado';
-    case 'discrepancy':
-      return 'Divergência';
-    case 'paid':
-      return 'Pago';
-    default:
-      return status;
-  }
 }
 
 const styles = StyleSheet.create({

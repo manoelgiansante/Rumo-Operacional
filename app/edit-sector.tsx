@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -103,61 +105,66 @@ export default function EditSectorScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.preview}>
-          <View style={[styles.previewIcon, { backgroundColor: selectedColor + '20' }]}>
-            <View style={[styles.previewDot, { backgroundColor: selectedColor }]} />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.preview}>
+            <View style={[styles.previewIcon, { backgroundColor: selectedColor + '20' }]}>
+              <View style={[styles.previewDot, { backgroundColor: selectedColor }]} />
+            </View>
+            <Text style={styles.previewName}>{name || 'Nome do Setor'}</Text>
+            <Text style={styles.previewDescription}>{description || 'Descrição'}</Text>
           </View>
-          <Text style={styles.previewName}>{name || 'Nome do Setor'}</Text>
-          <Text style={styles.previewDescription}>{description || 'Descrição'}</Text>
-        </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Nome do Setor *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex: Pecuária, Agricultura, Compostagem..."
-            placeholderTextColor={colors.textMuted}
-            value={name}
-            onChangeText={setName}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Descrição</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Descreva brevemente este setor..."
-            placeholderTextColor={colors.textMuted}
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={3}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Cor de Identificação</Text>
-          <View style={styles.colorGrid}>
-            {SECTOR_COLORS.map((color) => (
-              <TouchableOpacity
-                key={color}
-                style={[
-                  styles.colorItem,
-                  { backgroundColor: color },
-                  selectedColor === color && styles.colorItemSelected,
-                ]}
-                onPress={() => setSelectedColor(color)}
-              >
-                {selectedColor === color && <Check size={18} color="#fff" />}
-              </TouchableOpacity>
-            ))}
+          <View style={styles.field}>
+            <Text style={styles.label}>Nome do Setor *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex: Pecuária, Agricultura, Compostagem..."
+              placeholderTextColor={colors.textMuted}
+              value={name}
+              onChangeText={setName}
+            />
           </View>
-        </View>
 
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+          <View style={styles.field}>
+            <Text style={styles.label}>Descrição</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Descreva brevemente este setor..."
+              placeholderTextColor={colors.textMuted}
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Cor de Identificação</Text>
+            <View style={styles.colorGrid}>
+              {SECTOR_COLORS.map((color) => (
+                <TouchableOpacity
+                  key={color}
+                  style={[
+                    styles.colorItem,
+                    { backgroundColor: color },
+                    selectedColor === color && styles.colorItemSelected,
+                  ]}
+                  onPress={() => setSelectedColor(color)}
+                >
+                  {selectedColor === color && <Check size={18} color="#fff" />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.bottomSpacing} />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

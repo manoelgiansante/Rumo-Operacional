@@ -7,6 +7,8 @@ import {
   TextInput,
   Alert,
   Switch,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -213,360 +215,365 @@ export default function AddExpenseScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.field}>
-          <Text style={styles.label}>Descrição *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ex: Conta de energia"
-            placeholderTextColor={colors.textMuted}
-            value={description}
-            onChangeText={setDescription}
-          />
-        </View>
-
-        <View style={styles.sharedToggleContainer}>
-          <View style={styles.sharedToggleLeft}>
-            <Split size={20} color={isSharedExpense ? colors.primary : colors.textMuted} />
-            <View style={styles.sharedToggleText}>
-              <Text style={styles.sharedToggleTitle}>Ratear custo</Text>
-              <Text style={styles.sharedToggleSubtitle}>Dividir entre operações</Text>
-            </View>
-          </View>
-          <Switch
-            value={isSharedExpense}
-            onValueChange={(value) => {
-              setIsSharedExpense(value);
-              if (!value) {
-                setSelectedOperations([]);
-              }
-            }}
-            trackColor={{ false: colors.border, true: colors.primaryLight }}
-            thumbColor={isSharedExpense ? colors.primary : colors.surface}
-          />
-        </View>
-
-        {!isSharedExpense ? (
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.field}>
-            <Text style={styles.label}>Operação *</Text>
-            <TouchableOpacity
-              style={styles.select}
-              onPress={() => setShowOperationPicker(!showOperationPicker)}
-            >
-              {selectedOperationData ? (
-                <View style={styles.selectedOption}>
-                  <View
-                    style={[styles.optionDot, { backgroundColor: selectedOperationData.color }]}
-                  />
-                  <Text style={styles.selectText}>{selectedOperationData.name}</Text>
-                </View>
-              ) : (
-                <Text style={styles.selectPlaceholder}>Selecione a operação</Text>
-              )}
-              <ChevronDown size={20} color={colors.textMuted} />
-            </TouchableOpacity>
+            <Text style={styles.label}>Descrição *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex: Conta de energia"
+              placeholderTextColor={colors.textMuted}
+              value={description}
+              onChangeText={setDescription}
+            />
+          </View>
 
-            {showOperationPicker && (
-              <View style={styles.picker}>
-                {operations.length === 0 ? (
-                  <View style={styles.emptyPicker}>
-                    <Text style={styles.emptyPickerText}>Nenhuma operação cadastrada</Text>
-                    <TouchableOpacity
-                      style={styles.emptyPickerButton}
-                      onPress={() => {
-                        setShowOperationPicker(false);
-                        router.push('/add-operation');
-                      }}
-                    >
-                      <Text style={styles.emptyPickerButtonText}>Criar operação</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  operations.map((op) => (
-                    <TouchableOpacity
-                      key={op.id}
-                      style={styles.pickerItem}
-                      onPress={() => {
-                        setSelectedOperation(op.id);
-                        setShowOperationPicker(false);
-                      }}
-                    >
-                      <View style={[styles.optionDot, { backgroundColor: op.color }]} />
-                      <Text style={styles.pickerText}>{op.name}</Text>
-                    </TouchableOpacity>
-                  ))
-                )}
+          <View style={styles.sharedToggleContainer}>
+            <View style={styles.sharedToggleLeft}>
+              <Split size={20} color={isSharedExpense ? colors.primary : colors.textMuted} />
+              <View style={styles.sharedToggleText}>
+                <Text style={styles.sharedToggleTitle}>Ratear custo</Text>
+                <Text style={styles.sharedToggleSubtitle}>Dividir entre operações</Text>
               </View>
-            )}
-          </View>
-        ) : (
-          <View style={styles.field}>
-            <View style={styles.labelRow}>
-              <Text style={styles.label}>Operações para Rateio *</Text>
-              {selectedOperations.length >= 2 && (
-                <TouchableOpacity onPress={distributeEqually} style={styles.equalizeButton}>
-                  <Percent size={14} color={colors.primary} />
-                  <Text style={styles.equalizeText}>Igualar</Text>
-                </TouchableOpacity>
-              )}
             </View>
+            <Switch
+              value={isSharedExpense}
+              onValueChange={(value) => {
+                setIsSharedExpense(value);
+                if (!value) {
+                  setSelectedOperations([]);
+                }
+              }}
+              trackColor={{ false: colors.border, true: colors.primaryLight }}
+              thumbColor={isSharedExpense ? colors.primary : colors.surface}
+            />
+          </View>
 
-            <TouchableOpacity
-              style={styles.select}
-              onPress={() => setShowMultiOperationPicker(!showMultiOperationPicker)}
-            >
-              {selectedOperations.length > 0 ? (
-                <Text style={styles.selectText}>
-                  {selectedOperations.length} operação(ões) selecionada(s)
-                </Text>
-              ) : (
-                <Text style={styles.selectPlaceholder}>Selecione as operações</Text>
-              )}
-              <ChevronDown size={20} color={colors.textMuted} />
-            </TouchableOpacity>
-
-            {showMultiOperationPicker && (
-              <View style={styles.picker}>
-                {operations.length === 0 ? (
-                  <View style={styles.emptyPicker}>
-                    <Text style={styles.emptyPickerText}>Nenhuma operação cadastrada</Text>
-                    <Text style={styles.emptyPickerSubtext}>
-                      Crie pelo menos 2 operações para usar o rateio
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.emptyPickerButton}
-                      onPress={() => {
-                        setShowMultiOperationPicker(false);
-                        router.push('/add-operation');
-                      }}
-                    >
-                      <Text style={styles.emptyPickerButtonText}>Criar operação</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : operations.length < 2 ? (
-                  <View style={styles.emptyPicker}>
-                    <Text style={styles.emptyPickerText}>
-                      Apenas {operations.length} operação cadastrada
-                    </Text>
-                    <Text style={styles.emptyPickerSubtext}>
-                      Para ratear custos, crie pelo menos 2 operações
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.emptyPickerButton}
-                      onPress={() => {
-                        setShowMultiOperationPicker(false);
-                        router.push('/add-operation');
-                      }}
-                    >
-                      <Text style={styles.emptyPickerButtonText}>Criar operação</Text>
-                    </TouchableOpacity>
+          {!isSharedExpense ? (
+            <View style={styles.field}>
+              <Text style={styles.label}>Operação *</Text>
+              <TouchableOpacity
+                style={styles.select}
+                onPress={() => setShowOperationPicker(!showOperationPicker)}
+              >
+                {selectedOperationData ? (
+                  <View style={styles.selectedOption}>
+                    <View
+                      style={[styles.optionDot, { backgroundColor: selectedOperationData.color }]}
+                    />
+                    <Text style={styles.selectText}>{selectedOperationData.name}</Text>
                   </View>
                 ) : (
-                  operations.map((op) => {
-                    const isSelected = selectedOperations.some((s) => s.operationId === op.id);
-                    return (
+                  <Text style={styles.selectPlaceholder}>Selecione a operação</Text>
+                )}
+                <ChevronDown size={20} color={colors.textMuted} />
+              </TouchableOpacity>
+
+              {showOperationPicker && (
+                <View style={styles.picker}>
+                  {operations.length === 0 ? (
+                    <View style={styles.emptyPicker}>
+                      <Text style={styles.emptyPickerText}>Nenhuma operação cadastrada</Text>
+                      <TouchableOpacity
+                        style={styles.emptyPickerButton}
+                        onPress={() => {
+                          setShowOperationPicker(false);
+                          router.push('/add-operation');
+                        }}
+                      >
+                        <Text style={styles.emptyPickerButtonText}>Criar operação</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    operations.map((op) => (
                       <TouchableOpacity
                         key={op.id}
-                        style={[styles.pickerItem, isSelected && styles.pickerItemSelected]}
-                        onPress={() => toggleOperationSelection(op.id)}
+                        style={styles.pickerItem}
+                        onPress={() => {
+                          setSelectedOperation(op.id);
+                          setShowOperationPicker(false);
+                        }}
                       >
                         <View style={[styles.optionDot, { backgroundColor: op.color }]} />
                         <Text style={styles.pickerText}>{op.name}</Text>
-                        {isSelected && <Check size={18} color={colors.primary} />}
                       </TouchableOpacity>
-                    );
-                  })
-                )}
-              </View>
-            )}
-
-            {selectedOperations.length > 0 && (
-              <View style={styles.allocationContainer}>
-                <Text style={styles.allocationTitle}>Distribuição do Rateio</Text>
-                {selectedOperations.map((allocation) => {
-                  const op = operations.find((o) => o.id === allocation.operationId);
-                  const allocatedValue = (parsedValue * allocation.percentage) / 100;
-
-                  return (
-                    <View key={allocation.operationId} style={styles.allocationRow}>
-                      <View style={styles.allocationInfo}>
-                        <View
-                          style={[
-                            styles.optionDotSmall,
-                            { backgroundColor: op?.color || colors.primary },
-                          ]}
-                        />
-                        <Text style={styles.allocationName} numberOfLines={1}>
-                          {op?.name || ''}
-                        </Text>
-                      </View>
-                      <View style={styles.allocationInputContainer}>
-                        <TextInput
-                          style={styles.allocationInput}
-                          keyboardType="numeric"
-                          value={allocation.percentage.toString()}
-                          onChangeText={(text) => {
-                            const num = parseInt(text) || 0;
-                            updateOperationPercentage(
-                              allocation.operationId,
-                              Math.min(100, Math.max(0, num))
-                            );
-                          }}
-                          maxLength={3}
-                        />
-                        <Text style={styles.allocationPercent}>%</Text>
-                      </View>
-                      <Text style={styles.allocationValue}>
-                        R$ {allocatedValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </Text>
-                    </View>
-                  );
-                })}
-                <View
-                  style={[
-                    styles.allocationTotalRow,
-                    totalPercentage !== 100 && styles.allocationTotalError,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.allocationTotalLabel,
-                      totalPercentage !== 100 && styles.allocationTotalErrorText,
-                    ]}
-                  >
-                    Total: {totalPercentage}%
-                  </Text>
-                  {totalPercentage !== 100 && (
-                    <Text style={styles.allocationErrorHint}>Deve ser 100%</Text>
+                    ))
                   )}
                 </View>
+              )}
+            </View>
+          ) : (
+            <View style={styles.field}>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>Operações para Rateio *</Text>
+                {selectedOperations.length >= 2 && (
+                  <TouchableOpacity onPress={distributeEqually} style={styles.equalizeButton}>
+                    <Percent size={14} color={colors.primary} />
+                    <Text style={styles.equalizeText}>Igualar</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <TouchableOpacity
+                style={styles.select}
+                onPress={() => setShowMultiOperationPicker(!showMultiOperationPicker)}
+              >
+                {selectedOperations.length > 0 ? (
+                  <Text style={styles.selectText}>
+                    {selectedOperations.length} operação(ões) selecionada(s)
+                  </Text>
+                ) : (
+                  <Text style={styles.selectPlaceholder}>Selecione as operações</Text>
+                )}
+                <ChevronDown size={20} color={colors.textMuted} />
+              </TouchableOpacity>
+
+              {showMultiOperationPicker && (
+                <View style={styles.picker}>
+                  {operations.length === 0 ? (
+                    <View style={styles.emptyPicker}>
+                      <Text style={styles.emptyPickerText}>Nenhuma operação cadastrada</Text>
+                      <Text style={styles.emptyPickerSubtext}>
+                        Crie pelo menos 2 operações para usar o rateio
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.emptyPickerButton}
+                        onPress={() => {
+                          setShowMultiOperationPicker(false);
+                          router.push('/add-operation');
+                        }}
+                      >
+                        <Text style={styles.emptyPickerButtonText}>Criar operação</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : operations.length < 2 ? (
+                    <View style={styles.emptyPicker}>
+                      <Text style={styles.emptyPickerText}>
+                        Apenas {operations.length} operação cadastrada
+                      </Text>
+                      <Text style={styles.emptyPickerSubtext}>
+                        Para ratear custos, crie pelo menos 2 operações
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.emptyPickerButton}
+                        onPress={() => {
+                          setShowMultiOperationPicker(false);
+                          router.push('/add-operation');
+                        }}
+                      >
+                        <Text style={styles.emptyPickerButtonText}>Criar operação</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    operations.map((op) => {
+                      const isSelected = selectedOperations.some((s) => s.operationId === op.id);
+                      return (
+                        <TouchableOpacity
+                          key={op.id}
+                          style={[styles.pickerItem, isSelected && styles.pickerItemSelected]}
+                          onPress={() => toggleOperationSelection(op.id)}
+                        >
+                          <View style={[styles.optionDot, { backgroundColor: op.color }]} />
+                          <Text style={styles.pickerText}>{op.name}</Text>
+                          {isSelected && <Check size={18} color={colors.primary} />}
+                        </TouchableOpacity>
+                      );
+                    })
+                  )}
+                </View>
+              )}
+
+              {selectedOperations.length > 0 && (
+                <View style={styles.allocationContainer}>
+                  <Text style={styles.allocationTitle}>Distribuição do Rateio</Text>
+                  {selectedOperations.map((allocation) => {
+                    const op = operations.find((o) => o.id === allocation.operationId);
+                    const allocatedValue = (parsedValue * allocation.percentage) / 100;
+
+                    return (
+                      <View key={allocation.operationId} style={styles.allocationRow}>
+                        <View style={styles.allocationInfo}>
+                          <View
+                            style={[
+                              styles.optionDotSmall,
+                              { backgroundColor: op?.color || colors.primary },
+                            ]}
+                          />
+                          <Text style={styles.allocationName} numberOfLines={1}>
+                            {op?.name || ''}
+                          </Text>
+                        </View>
+                        <View style={styles.allocationInputContainer}>
+                          <TextInput
+                            style={styles.allocationInput}
+                            keyboardType="numeric"
+                            value={allocation.percentage.toString()}
+                            onChangeText={(text) => {
+                              const num = parseInt(text) || 0;
+                              updateOperationPercentage(
+                                allocation.operationId,
+                                Math.min(100, Math.max(0, num))
+                              );
+                            }}
+                            maxLength={3}
+                          />
+                          <Text style={styles.allocationPercent}>%</Text>
+                        </View>
+                        <Text style={styles.allocationValue}>
+                          R$ {allocatedValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                  <View
+                    style={[
+                      styles.allocationTotalRow,
+                      totalPercentage !== 100 && styles.allocationTotalError,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.allocationTotalLabel,
+                        totalPercentage !== 100 && styles.allocationTotalErrorText,
+                      ]}
+                    >
+                      Total: {totalPercentage}%
+                    </Text>
+                    {totalPercentage !== 100 && (
+                      <Text style={styles.allocationErrorHint}>Deve ser 100%</Text>
+                    )}
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Fornecedor</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nome do fornecedor"
+              placeholderTextColor={colors.textMuted}
+              value={supplier}
+              onChangeText={setSupplier}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Categoria</Text>
+            <TouchableOpacity
+              style={styles.select}
+              onPress={() => setShowCategoryPicker(!showCategoryPicker)}
+            >
+              <Text style={selectedCategory ? styles.selectText : styles.selectPlaceholder}>
+                {selectedCategory || 'Selecione a categoria'}
+              </Text>
+              <ChevronDown size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            {showCategoryPicker && (
+              <View style={styles.picker}>
+                {expenseCategories.map((cat) => (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={styles.pickerItem}
+                    onPress={() => {
+                      setSelectedCategory(cat.name);
+                      setShowCategoryPicker(false);
+                    }}
+                  >
+                    <Text style={styles.pickerText}>{cat.name}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             )}
           </View>
-        )}
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Fornecedor</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Nome do fornecedor"
-            placeholderTextColor={colors.textMuted}
-            value={supplier}
-            onChangeText={setSupplier}
-          />
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Categoria</Text>
-          <TouchableOpacity
-            style={styles.select}
-            onPress={() => setShowCategoryPicker(!showCategoryPicker)}
-          >
-            <Text style={selectedCategory ? styles.selectText : styles.selectPlaceholder}>
-              {selectedCategory || 'Selecione a categoria'}
-            </Text>
-            <ChevronDown size={20} color={colors.textMuted} />
-          </TouchableOpacity>
-
-          {showCategoryPicker && (
-            <View style={styles.picker}>
-              {expenseCategories.map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  style={styles.pickerItem}
-                  onPress={() => {
-                    setSelectedCategory(cat.name);
-                    setShowCategoryPicker(false);
-                  }}
-                >
-                  <Text style={styles.pickerText}>{cat.name}</Text>
-                </TouchableOpacity>
-              ))}
+          <View style={styles.field}>
+            <Text style={styles.label}>Valor Total *</Text>
+            <View style={styles.currencyInput}>
+              <Text style={styles.currencyPrefix}>R$</Text>
+              <TextInput
+                style={styles.currencyField}
+                placeholder="0,00"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="numeric"
+                value={formatCurrencyInput(rawCents)}
+                onChangeText={handleValueChange}
+              />
             </View>
-          )}
-        </View>
+          </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Valor Total *</Text>
-          <View style={styles.currencyInput}>
-            <Text style={styles.currencyPrefix}>R$</Text>
+          <View style={styles.field}>
+            <Text style={styles.label}>Data de Vencimento *</Text>
             <TextInput
-              style={styles.currencyField}
-              placeholder="0,00"
+              style={styles.input}
+              placeholder="DD/MM/AAAA"
               placeholderTextColor={colors.textMuted}
+              value={dueDate}
+              onChangeText={handleDateChange}
               keyboardType="numeric"
-              value={formatCurrencyInput(rawCents)}
-              onChangeText={handleValueChange}
+              maxLength={10}
             />
           </View>
-        </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Data de Vencimento *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="DD/MM/AAAA"
-            placeholderTextColor={colors.textMuted}
-            value={dueDate}
-            onChangeText={handleDateChange}
-            keyboardType="numeric"
-            maxLength={10}
-          />
-        </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Forma de Pagamento *</Text>
+            <TouchableOpacity
+              style={styles.select}
+              onPress={() => {
+                setShowPaymentPicker(!showPaymentPicker);
+                setShowCategoryPicker(false);
+                setShowOperationPicker(false);
+              }}
+            >
+              <Text style={styles.selectText}>
+                {PAYMENT_METHODS.find((p) => p.value === paymentMethod)?.label || 'Boleto'}
+              </Text>
+              <ChevronDown size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+            {showPaymentPicker && (
+              <View style={styles.picker}>
+                {PAYMENT_METHODS.map((method) => (
+                  <TouchableOpacity
+                    key={method.value}
+                    style={[
+                      styles.pickerItem,
+                      paymentMethod === method.value && { backgroundColor: colors.primaryLight },
+                    ]}
+                    onPress={() => {
+                      setPaymentMethod(method.value);
+                      setShowPaymentPicker(false);
+                    }}
+                  >
+                    <Text style={styles.pickerText}>{method.label}</Text>
+                    {paymentMethod === method.value && <Check size={18} color={colors.primary} />}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Forma de Pagamento *</Text>
-          <TouchableOpacity
-            style={styles.select}
-            onPress={() => {
-              setShowPaymentPicker(!showPaymentPicker);
-              setShowCategoryPicker(false);
-              setShowOperationPicker(false);
-            }}
-          >
-            <Text style={styles.selectText}>
-              {PAYMENT_METHODS.find((p) => p.value === paymentMethod)?.label || 'Boleto'}
-            </Text>
-            <ChevronDown size={20} color={colors.textMuted} />
-          </TouchableOpacity>
-          {showPaymentPicker && (
-            <View style={styles.picker}>
-              {PAYMENT_METHODS.map((method) => (
-                <TouchableOpacity
-                  key={method.value}
-                  style={[
-                    styles.pickerItem,
-                    paymentMethod === method.value && { backgroundColor: colors.primaryLight },
-                  ]}
-                  onPress={() => {
-                    setPaymentMethod(method.value);
-                    setShowPaymentPicker(false);
-                  }}
-                >
-                  <Text style={styles.pickerText}>{method.label}</Text>
-                  {paymentMethod === method.value && <Check size={18} color={colors.primary} />}
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Observações</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Adicione notas ou observações..."
+              placeholderTextColor={colors.textMuted}
+              value={notes}
+              onChangeText={setNotes}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+          </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Observações</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Adicione notas ou observações..."
-            placeholderTextColor={colors.textMuted}
-            value={notes}
-            onChangeText={setNotes}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+          <View style={styles.bottomSpacing} />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

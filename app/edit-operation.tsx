@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -118,189 +120,194 @@ export default function EditOperationScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nome da Operação</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="Ex: Preparo de Solo"
-              placeholderTextColor={colors.textMuted}
-            />
-          </View>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.form}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Nome da Operação</Text>
+              <TextInput
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+                placeholder="Ex: Preparo de Solo"
+                placeholderTextColor={colors.textMuted}
+              />
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Descrição (opcional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Ex: Atividades de preparo e correção do solo"
-              placeholderTextColor={colors.textMuted}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-          </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Descrição (opcional)</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Ex: Atividades de preparo e correção do solo"
+                placeholderTextColor={colors.textMuted}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Setor (opcional)</Text>
-            <TouchableOpacity
-              style={styles.pickerButton}
-              onPress={() => {
-                setShowSectorPicker(!showSectorPicker);
-                setShowTypePicker(false);
-              }}
-            >
-              {selectedSector ? (
-                <View style={styles.selectedSector}>
-                  <View style={[styles.sectorDot, { backgroundColor: selectedSector.color }]} />
-                  <Text style={styles.selectedSectorText}>{selectedSector.name}</Text>
-                </View>
-              ) : (
-                <Text style={styles.placeholderText}>Selecionar setor</Text>
-              )}
-              <ChevronDown size={18} color={colors.textMuted} strokeWidth={1.5} />
-            </TouchableOpacity>
-
-            {showSectorPicker && (
-              <View style={styles.sectorList}>
-                {sectors.length === 0 ? (
-                  <View style={styles.emptyPicker}>
-                    <Text style={styles.emptyPickerText}>Nenhum setor cadastrado</Text>
-                    <TouchableOpacity
-                      style={styles.emptyPickerButton}
-                      onPress={() => {
-                        setShowSectorPicker(false);
-                        router.push('/add-sector');
-                      }}
-                    >
-                      <Text style={styles.emptyPickerButtonText}>Criar setor</Text>
-                    </TouchableOpacity>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Setor (opcional)</Text>
+              <TouchableOpacity
+                style={styles.pickerButton}
+                onPress={() => {
+                  setShowSectorPicker(!showSectorPicker);
+                  setShowTypePicker(false);
+                }}
+              >
+                {selectedSector ? (
+                  <View style={styles.selectedSector}>
+                    <View style={[styles.sectorDot, { backgroundColor: selectedSector.color }]} />
+                    <Text style={styles.selectedSectorText}>{selectedSector.name}</Text>
                   </View>
                 ) : (
-                  <>
+                  <Text style={styles.placeholderText}>Selecionar setor</Text>
+                )}
+                <ChevronDown size={18} color={colors.textMuted} strokeWidth={1.5} />
+              </TouchableOpacity>
+
+              {showSectorPicker && (
+                <View style={styles.sectorList}>
+                  {sectors.length === 0 ? (
+                    <View style={styles.emptyPicker}>
+                      <Text style={styles.emptyPickerText}>Nenhum setor cadastrado</Text>
+                      <TouchableOpacity
+                        style={styles.emptyPickerButton}
+                        onPress={() => {
+                          setShowSectorPicker(false);
+                          router.push('/add-sector');
+                        }}
+                      >
+                        <Text style={styles.emptyPickerButtonText}>Criar setor</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <>
+                      <TouchableOpacity
+                        style={styles.sectorOption}
+                        onPress={() => {
+                          setSelectedSectorId('');
+                          setShowSectorPicker(false);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.sectorOptionText,
+                            !selectedSectorId && styles.sectorOptionSelected,
+                          ]}
+                        >
+                          Nenhum setor
+                        </Text>
+                      </TouchableOpacity>
+                      {sectors.map((sector) => (
+                        <TouchableOpacity
+                          key={sector.id}
+                          style={styles.sectorOption}
+                          onPress={() => {
+                            setSelectedSectorId(sector.id);
+                            setShowSectorPicker(false);
+                          }}
+                        >
+                          <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
+                          <Text
+                            style={[
+                              styles.sectorOptionText,
+                              selectedSectorId === sector.id && styles.sectorOptionSelected,
+                            ]}
+                          >
+                            {sector.name}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  )}
+                </View>
+              )}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <View style={styles.labelRow}>
+                <Palette size={16} color={colors.textMuted} strokeWidth={1.5} />
+                <Text style={styles.label}>Tipo de Operação</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.pickerButton}
+                onPress={() => {
+                  setShowTypePicker(!showTypePicker);
+                  setShowSectorPicker(false);
+                }}
+              >
+                <Text style={styles.selectedSectorText}>
+                  {OPERATION_TYPES.find((t) => t.value === selectedType)?.label || 'Outro'}
+                </Text>
+                <ChevronDown size={18} color={colors.textMuted} strokeWidth={1.5} />
+              </TouchableOpacity>
+              {showTypePicker && (
+                <View style={styles.sectorList}>
+                  {OPERATION_TYPES.map((type) => (
                     <TouchableOpacity
+                      key={type.value}
                       style={styles.sectorOption}
                       onPress={() => {
-                        setSelectedSectorId('');
-                        setShowSectorPicker(false);
+                        setSelectedType(type.value);
+                        setShowTypePicker(false);
                       }}
                     >
                       <Text
                         style={[
                           styles.sectorOptionText,
-                          !selectedSectorId && styles.sectorOptionSelected,
+                          selectedType === type.value && styles.sectorOptionSelected,
                         ]}
                       >
-                        Nenhum setor
+                        {type.label}
                       </Text>
                     </TouchableOpacity>
-                    {sectors.map((sector) => (
-                      <TouchableOpacity
-                        key={sector.id}
-                        style={styles.sectorOption}
-                        onPress={() => {
-                          setSelectedSectorId(sector.id);
-                          setShowSectorPicker(false);
-                        }}
-                      >
-                        <View style={[styles.sectorDot, { backgroundColor: sector.color }]} />
-                        <Text
-                          style={[
-                            styles.sectorOptionText,
-                            selectedSectorId === sector.id && styles.sectorOptionSelected,
-                          ]}
-                        >
-                          {sector.name}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </>
-                )}
-              </View>
-            )}
-          </View>
-
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Palette size={16} color={colors.textMuted} strokeWidth={1.5} />
-              <Text style={styles.label}>Tipo de Operação</Text>
+                  ))}
+                </View>
+              )}
             </View>
-            <TouchableOpacity
-              style={styles.pickerButton}
-              onPress={() => {
-                setShowTypePicker(!showTypePicker);
-                setShowSectorPicker(false);
-              }}
-            >
-              <Text style={styles.selectedSectorText}>
-                {OPERATION_TYPES.find((t) => t.value === selectedType)?.label || 'Outro'}
-              </Text>
-              <ChevronDown size={18} color={colors.textMuted} strokeWidth={1.5} />
-            </TouchableOpacity>
-            {showTypePicker && (
-              <View style={styles.sectorList}>
-                {OPERATION_TYPES.map((type) => (
+
+            <View style={styles.inputGroup}>
+              <View style={styles.labelRow}>
+                <Palette size={16} color={colors.textMuted} strokeWidth={1.5} />
+                <Text style={styles.label}>Cor de Identificação</Text>
+              </View>
+              <View style={styles.colorGrid}>
+                {COLORS.map((color) => (
                   <TouchableOpacity
-                    key={type.value}
-                    style={styles.sectorOption}
-                    onPress={() => {
-                      setSelectedType(type.value);
-                      setShowTypePicker(false);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.sectorOptionText,
-                        selectedType === type.value && styles.sectorOptionSelected,
-                      ]}
-                    >
-                      {type.label}
-                    </Text>
-                  </TouchableOpacity>
+                    key={color}
+                    style={[
+                      styles.colorOption,
+                      { backgroundColor: color },
+                      selectedColor === color && styles.colorOptionSelected,
+                    ]}
+                    onPress={() => setSelectedColor(color)}
+                  />
                 ))}
               </View>
-            )}
-          </View>
-
-          <View style={styles.inputGroup}>
-            <View style={styles.labelRow}>
-              <Palette size={16} color={colors.textMuted} strokeWidth={1.5} />
-              <Text style={styles.label}>Cor de Identificação</Text>
             </View>
-            <View style={styles.colorGrid}>
-              {COLORS.map((color) => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorOption,
-                    { backgroundColor: color },
-                    selectedColor === color && styles.colorOptionSelected,
-                  ]}
-                  onPress={() => setSelectedColor(color)}
-                />
-              ))}
+
+            <View style={styles.previewContainer}>
+              <Text style={styles.previewLabel}>Preview</Text>
+              <View style={styles.preview}>
+                <View style={[styles.previewDot, { backgroundColor: selectedColor }]} />
+                <Text style={styles.previewText}>{name || 'Nome da operação'}</Text>
+              </View>
             </View>
           </View>
 
-          <View style={styles.previewContainer}>
-            <Text style={styles.previewLabel}>Preview</Text>
-            <View style={styles.preview}>
-              <View style={[styles.previewDot, { backgroundColor: selectedColor }]} />
-              <Text style={styles.previewText}>{name || 'Nome da operação'}</Text>
-            </View>
-          </View>
-        </View>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>Salvar Alterações</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Salvar Alterações</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: 40 }} />
-      </ScrollView>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

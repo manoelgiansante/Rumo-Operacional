@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -22,6 +24,14 @@ import {
 } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
 import { useApp } from '@/contexts/AppContext';
+import {
+  formatCurrency,
+  formatCurrencyInput,
+  parseCurrencyInput,
+  getStatusColor,
+  getStatusLabel,
+  getPaymentMethodLabel,
+} from '@/utils/formatters';
 
 export default function ExpenseDetailScreen() {
   const router = useRouter();
@@ -32,13 +42,17 @@ export default function ExpenseDetailScreen() {
   const operation = expense ? operations.find((op) => op.id === expense.operationId) : null;
 
   const [isEditing, setIsEditing] = useState(false);
-  const [invoiceValue, setInvoiceValue] = useState(expense?.invoiceValue?.toString() || '');
+  const [invoiceRawCents, setInvoiceRawCents] = useState(
+    expense?.invoiceValue ? Math.round(expense.invoiceValue * 100).toString() : ''
+  );
   const [invoiceNumber, setInvoiceNumber] = useState(expense?.invoiceNumber || '');
   const [notes, setNotes] = useState(expense?.verificationNotes || '');
 
   useEffect(() => {
     if (expense) {
-      setInvoiceValue(expense.invoiceValue?.toString() || '');
+      setInvoiceRawCents(
+        expense.invoiceValue ? Math.round(expense.invoiceValue * 100).toString() : ''
+      );
       setInvoiceNumber(expense.invoiceNumber || '');
       setNotes(expense.verificationNotes || '');
     }
@@ -56,10 +70,6 @@ export default function ExpenseDetailScreen() {
       </SafeAreaView>
     );
   }
-
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   const formatDate = (dateString: string) => {
     // Suporta formato DD/MM/AAAA e ISO
@@ -88,7 +98,7 @@ export default function ExpenseDetailScreen() {
   };
 
   const handleSave = async () => {
-    const parsedInvoiceValue = invoiceValue ? parseFloat(invoiceValue) : undefined;
+    const parsedInvoiceValue = parseCurrencyInput(invoiceRawCents) || undefined;
 
     const result = await updateExpense(expense.id, {
       invoiceValue: parsedInvoiceValue,
@@ -133,36 +143,6 @@ export default function ExpenseDetailScreen() {
     ]);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return colors.statusPending;
-      case 'verified':
-        return colors.info;
-      case 'discrepancy':
-        return colors.error;
-      case 'paid':
-        return colors.success;
-      default:
-        return colors.textMuted;
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'Pendente';
-      case 'verified':
-        return 'Verificado';
-      case 'discrepancy':
-        return 'Divergência';
-      case 'paid':
-        return 'Pago';
-      default:
-        return status;
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -175,207 +155,199 @@ export default function ExpenseDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.mainCard}>
-          <View style={styles.statusRow}>
-            <View style={[styles.operationBadge, { backgroundColor: operation?.color + '20' }]}>
-              <View style={[styles.operationDot, { backgroundColor: operation?.color }]} />
-              <Text style={[styles.operationName, { color: operation?.color }]}>
-                {operation?.name}
-              </Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.mainCard}>
+            <View style={styles.statusRow}>
+              <View style={[styles.operationBadge, { backgroundColor: operation?.color + '20' }]}>
+                <View style={[styles.operationDot, { backgroundColor: operation?.color }]} />
+                <Text style={[styles.operationName, { color: operation?.color }]}>
+                  {operation?.name}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.statusBadge,
+                  { backgroundColor: getStatusColor(expense.status) + '20' },
+                ]}
+              >
+                <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
+                  {getStatusLabel(expense.status)}
+                </Text>
+              </View>
             </View>
-            <View
-              style={[
-                styles.statusBadge,
-                { backgroundColor: getStatusColor(expense.status) + '20' },
-              ]}
-            >
-              <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
-                {getStatusLabel(expense.status)}
-              </Text>
+
+            <Text style={styles.description}>{expense.description}</Text>
+
+            <View style={styles.infoRow}>
+              <Building2 size={16} color={colors.textMuted} />
+              <Text style={styles.infoText}>{expense.supplier}</Text>
             </View>
-          </View>
 
-          <Text style={styles.description}>{expense.description}</Text>
+            <View style={styles.infoRow}>
+              <Calendar size={16} color={colors.textMuted} />
+              <Text style={styles.infoText}>Vencimento: {formatDate(expense.dueDate)}</Text>
+            </View>
 
-          <View style={styles.infoRow}>
-            <Building2 size={16} color={colors.textMuted} />
-            <Text style={styles.infoText}>{expense.supplier}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Calendar size={16} color={colors.textMuted} />
-            <Text style={styles.infoText}>Vencimento: {formatDate(expense.dueDate)}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <FileText size={16} color={colors.textMuted} />
-            <Text style={styles.infoText}>Categoria: {expense.category}</Text>
-          </View>
-
-          {expense.paymentMethod && (
             <View style={styles.infoRow}>
               <FileText size={16} color={colors.textMuted} />
-              <Text style={styles.infoText}>
-                Pagamento:{' '}
-                {expense.paymentMethod === 'boleto'
-                  ? 'Boleto'
-                  : expense.paymentMethod === 'pix'
-                    ? 'PIX'
-                    : expense.paymentMethod === 'cartao'
-                      ? 'Cartão'
-                      : expense.paymentMethod === 'transferencia'
-                        ? 'Transferência'
-                        : expense.paymentMethod === 'cheque'
-                          ? 'Cheque'
-                          : expense.paymentMethod === 'dinheiro'
-                            ? 'Dinheiro'
-                            : 'Outro'}
-              </Text>
+              <Text style={styles.infoText}>Categoria: {expense.category}</Text>
             </View>
-          )}
-        </View>
 
-        <View style={styles.valuesCard}>
-          <Text style={styles.sectionTitle}>Valores</Text>
-
-          <View style={styles.valueRow}>
-            <Text style={styles.valueLabel}>Valor Combinado</Text>
-            <Text style={styles.valueAmount}>{formatCurrency(expense.agreedValue)}</Text>
+            {expense.paymentMethod && (
+              <View style={styles.infoRow}>
+                <FileText size={16} color={colors.textMuted} />
+                <Text style={styles.infoText}>
+                  Pagamento: {getPaymentMethodLabel(expense.paymentMethod)}
+                </Text>
+              </View>
+            )}
           </View>
 
-          {expense.negotiatedValue !== undefined &&
-            expense.negotiatedValue !== expense.agreedValue && (
+          <View style={styles.valuesCard}>
+            <Text style={styles.sectionTitle}>Valores</Text>
+
+            <View style={styles.valueRow}>
+              <Text style={styles.valueLabel}>Valor Combinado</Text>
+              <Text style={styles.valueAmount}>{formatCurrency(expense.agreedValue)}</Text>
+            </View>
+
+            {expense.negotiatedValue !== undefined &&
+              expense.negotiatedValue !== expense.agreedValue && (
+                <View style={styles.valueRow}>
+                  <Text style={styles.valueLabel}>Valor Negociado</Text>
+                  <Text style={styles.valueAmount}>{formatCurrency(expense.negotiatedValue)}</Text>
+                </View>
+              )}
+
+            {isEditing ? (
+              <View style={styles.editField}>
+                <Text style={styles.editLabel}>Valor da Nota Fiscal</Text>
+                <TextInput
+                  style={styles.editInput}
+                  placeholder="0,00"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="numeric"
+                  value={formatCurrencyInput(invoiceRawCents)}
+                  onChangeText={(text) => setInvoiceRawCents(text.replace(/\D/g, ''))}
+                />
+              </View>
+            ) : (
               <View style={styles.valueRow}>
-                <Text style={styles.valueLabel}>Valor Negociado</Text>
-                <Text style={styles.valueAmount}>{formatCurrency(expense.negotiatedValue)}</Text>
+                <Text style={styles.valueLabel}>Valor da Nota</Text>
+                <Text
+                  style={[
+                    styles.valueAmount,
+                    expense.invoiceValue && expense.invoiceValue !== expense.agreedValue
+                      ? styles.valueError
+                      : undefined,
+                  ]}
+                >
+                  {expense.invoiceValue ? formatCurrency(expense.invoiceValue) : '—'}
+                </Text>
               </View>
             )}
 
-          {isEditing ? (
-            <View style={styles.editField}>
-              <Text style={styles.editLabel}>Valor da Nota Fiscal</Text>
+            {expense.invoiceValue && expense.invoiceValue !== expense.agreedValue && (
+              <View style={styles.differenceRow}>
+                <AlertTriangle size={16} color={colors.error} />
+                <Text style={styles.differenceText}>
+                  Diferença: {formatCurrency(Math.abs(expense.invoiceValue - expense.agreedValue))}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.detailsCard}>
+            <Text style={styles.sectionTitle}>Informações Adicionais</Text>
+
+            {isEditing ? (
+              <View style={styles.editField}>
+                <Text style={styles.editLabel}>Número da Nota</Text>
+                <TextInput
+                  style={styles.editInput}
+                  placeholder="NF-000000"
+                  placeholderTextColor={colors.textMuted}
+                  value={invoiceNumber}
+                  onChangeText={setInvoiceNumber}
+                />
+              </View>
+            ) : (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Nota Fiscal</Text>
+                <Text style={styles.detailValue}>{expense.invoiceNumber || '—'}</Text>
+              </View>
+            )}
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Criado em</Text>
+              <Text style={styles.detailValue}>{formatDate(expense.createdAt)}</Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Criado por</Text>
+              <Text style={styles.detailValue}>{expense.createdBy}</Text>
+            </View>
+
+            {expense.paymentDate && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Data de Pagamento</Text>
+                <Text style={styles.detailValue}>{formatDate(expense.paymentDate)}</Text>
+              </View>
+            )}
+          </View>
+
+          {isEditing && (
+            <View style={styles.notesCard}>
+              <Text style={styles.sectionTitle}>Observações</Text>
               <TextInput
-                style={styles.editInput}
-                placeholder="0,00"
+                style={styles.notesInput}
+                placeholder="Adicione observações..."
                 placeholderTextColor={colors.textMuted}
-                keyboardType="numeric"
-                value={invoiceValue}
-                onChangeText={setInvoiceValue}
+                value={notes}
+                onChangeText={setNotes}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
               />
             </View>
-          ) : (
-            <View style={styles.valueRow}>
-              <Text style={styles.valueLabel}>Valor da Nota</Text>
-              <Text
-                style={[
-                  styles.valueAmount,
-                  expense.invoiceValue && expense.invoiceValue !== expense.agreedValue
-                    ? styles.valueError
-                    : undefined,
-                ]}
-              >
-                {expense.invoiceValue ? formatCurrency(expense.invoiceValue) : '—'}
-              </Text>
+          )}
+
+          {expense.verificationNotes && !isEditing && (
+            <View style={styles.notesCard}>
+              <Text style={styles.sectionTitle}>Observações</Text>
+              <Text style={styles.notesText}>{expense.verificationNotes}</Text>
             </View>
           )}
 
-          {expense.invoiceValue && expense.invoiceValue !== expense.agreedValue && (
-            <View style={styles.differenceRow}>
-              <AlertTriangle size={16} color={colors.error} />
-              <Text style={styles.differenceText}>
-                Diferença: {formatCurrency(Math.abs(expense.invoiceValue - expense.agreedValue))}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.detailsCard}>
-          <Text style={styles.sectionTitle}>Informações Adicionais</Text>
-
-          {isEditing ? (
-            <View style={styles.editField}>
-              <Text style={styles.editLabel}>Número da Nota</Text>
-              <TextInput
-                style={styles.editInput}
-                placeholder="NF-000000"
-                placeholderTextColor={colors.textMuted}
-                value={invoiceNumber}
-                onChangeText={setInvoiceNumber}
-              />
-            </View>
-          ) : (
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Nota Fiscal</Text>
-              <Text style={styles.detailValue}>{expense.invoiceNumber || '—'}</Text>
-            </View>
-          )}
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Criado em</Text>
-            <Text style={styles.detailValue}>{formatDate(expense.createdAt)}</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Criado por</Text>
-            <Text style={styles.detailValue}>{expense.createdBy}</Text>
-          </View>
-
-          {expense.paymentDate && (
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Data de Pagamento</Text>
-              <Text style={styles.detailValue}>{formatDate(expense.paymentDate)}</Text>
-            </View>
-          )}
-        </View>
-
-        {isEditing && (
-          <View style={styles.notesCard}>
-            <Text style={styles.sectionTitle}>Observações</Text>
-            <TextInput
-              style={styles.notesInput}
-              placeholder="Adicione observações..."
-              placeholderTextColor={colors.textMuted}
-              value={notes}
-              onChangeText={setNotes}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
-        )}
-
-        {expense.verificationNotes && !isEditing && (
-          <View style={styles.notesCard}>
-            <Text style={styles.sectionTitle}>Observações</Text>
-            <Text style={styles.notesText}>{expense.verificationNotes}</Text>
-          </View>
-        )}
-
-        <View style={styles.actions}>
-          {isEditing ? (
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <CheckCircle size={20} color={colors.textLight} />
-              <Text style={styles.saveButtonText}>Salvar Alterações</Text>
-            </TouchableOpacity>
-          ) : (
-            <>
-              {expense.status !== 'paid' && (
-                <TouchableOpacity style={styles.paidButton} onPress={handleMarkAsPaid}>
-                  <CheckCircle size={20} color={colors.textLight} />
-                  <Text style={styles.paidButtonText}>Marcar como Pago</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-                <Trash2 size={20} color={colors.error} />
-                <Text style={styles.deleteButtonText}>Excluir</Text>
+          <View style={styles.actions}>
+            {isEditing ? (
+              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <CheckCircle size={20} color={colors.textLight} />
+                <Text style={styles.saveButtonText}>Salvar Alterações</Text>
               </TouchableOpacity>
-            </>
-          )}
-        </View>
+            ) : (
+              <>
+                {expense.status !== 'paid' && (
+                  <TouchableOpacity style={styles.paidButton} onPress={handleMarkAsPaid}>
+                    <CheckCircle size={20} color={colors.textLight} />
+                    <Text style={styles.paidButtonText}>Marcar como Pago</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+                  <Trash2 size={20} color={colors.error} />
+                  <Text style={styles.deleteButtonText}>Excluir</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
 
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+          <View style={styles.bottomSpacing} />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
